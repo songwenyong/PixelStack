@@ -66,7 +66,7 @@ public interface UserMapper {
     @ResultType(List.class)
     public List<Map<String, Object>> getUsersByuids(@Param("list") List<String> list);
 
-    @Update("UPDATE tb_user_info SET `status` = 'normal', admindate = NULL WHERE TIMEDIFF(NOW(), admindate) > " +
+    @Update("UPDATE tb_user_info SET `status` = 'normal' WHERE TIMEDIFF(NOW(), admindate) > " +
             "TIME('00:01:00') AND `status` = 'frozen';")
     public int unBlock();
 

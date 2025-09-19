@@ -113,6 +113,12 @@ create table tb_user_info
         unique (username)
 );
 
-INSERT INTO `tb_user_info` VALUES (100,'root','root','root','lcan@gmail.com','normal',NULL),(101,'Lcanboom','123456','user','lcan@gmail.com','frozen',NULL),(102,'Yangmi','666','user','YangMi@gmail.com','frozen','fuckkkkk'),(103,'Harden','123456','user','lcan@gmail.com','frozen',NULL),(104,'kobe','123456','user','kobe@gmail.com','frozen','fuckkkkk'),(105,'Har','123456','user','lcan@gmail.com','frozen',NULL),(106,'XXXXG','666','user','XXXG@gmail.com','normal',NULL),(107,'XXXA','521','user','lcan@gmail.com','normal',NULL),(108,'VAVA','888','user','lcan@gmail.com','normal',NULL),(109,'Paul','888','user','lcan@gmail.com','normal',NULL),(110,'Dawe','888','user','lcan@gmail.com','normal',NULL),(111,'Curry','888','admin','lcan@gmail.com','normal',NULL);
+INSERT INTO `tb_user_info`(uid
+                          , username
+                          , password
+                          , authority
+                          , email
+                          , status
+                          , introduction) VALUES (100,'root','root','root','lcan@gmail.com','normal',NULL),(101,'Lcanboom','123456','user','lcan@gmail.com','frozen',NULL),(102,'Yangmi','666','user','YangMi@gmail.com','frozen','fuckkkkk'),(103,'Harden','123456','user','lcan@gmail.com','frozen',NULL),(104,'kobe','123456','user','kobe@gmail.com','frozen','fuckkkkk'),(105,'Har','123456','user','lcan@gmail.com','frozen',NULL),(106,'XXXXG','666','user','XXXG@gmail.com','normal',NULL),(107,'XXXA','521','user','lcan@gmail.com','normal',NULL),(108,'VAVA','888','user','lcan@gmail.com','normal',NULL),(109,'Paul','888','user','lcan@gmail.com','normal',NULL),(110,'Dawe','888','user','lcan@gmail.com','normal',NULL),(111,'Curry','888','admin','lcan@gmail.com','normal',NULL);
 
 INSERT INTO `tb_tag` VALUES (101,'风景'),(102,'人物'),(103,'人物');

@@ -1,0 +1,23 @@
+export default {
+  myprimary: '#00897B',
+  secondary: '#00695C',
+  tertiary: '#495057',
+  accent: '#82B1FF',
+  error: '#f55a4e',
+  info: '#00d3ee',
+  success: '#00695C',
+  warning: '#ffa21a',
+  green: '#00695C',
+  pink: '#EF9A9A',
+  star: '#FF5722',
+  lightblue: '#03A9F4',
+  default: '#FFFFFF',
+  myinfo: '#0097A7',
+  mypink: '#E57373',
+  darkinfo: '#006064',
+  lightinfo: '#00ACC1',
+  commentinfo: '#006064',
+  cButton: '#546E7A',
+  pDelete: '#E57373',
+  textField: '#4DB6AC'
+}

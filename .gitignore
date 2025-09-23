@@ -24,3 +24,6 @@ HELP.md
 /nbdist/
 /.nb-gradle/
 /build/
+/ims-ui/node_modules/
+/ims-ui/package-lock.json
+/ims-backend/target/

@@ -48,6 +48,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(500, message, data);
     }
 
+    public static <T> ApiResponse<T> errorTyped(String message) {
+        return new ApiResponse<>(500, message);
+    }
+
     public ApiResponse<T> withPagination(Long total, Integer curPage, Integer prePage, Integer nextPage, Integer lastPage) {
         this.total = total;
         this.curPage = curPage;

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.ImageMapper">
+
+    <!-- 添加图片 -->
+    <insert id="addImage" parameterType="com.pixelstack.ims.domain.Image" useGeneratedKeys="true" keyProperty="iid" keyColumn="iid">
+        INSERT INTO tb_image_info(title, author, upload, url)
+        VALUES (#{title}, #{author}, #{upload}, #{url})
+    </insert>
+
+    <!-- 删除图片 -->
+    <delete id="deleteImage">
+        DELETE FROM tb_image_info WHERE iid = #{iid}
+    </delete>
+
+    <!-- 添加标题 -->
+    <update id="addTiltle">
+        UPDATE tb_image_info SET title = #{title} WHERE iid = #{iid}
+    </update>
+
+    <!-- 根据iid获取图片信息 -->
+    <select id="getImageByiid" resultType="com.pixelstack.ims.domain.Image">
+        SELECT * FROM tb_image_info WHERE iid = #{iid}
+    </select>
+
+    <!-- 获取图片收藏数 -->
+    <select id="getImageStarCount" resultType="int">
+        SELECT COUNT(*) FROM tb_star_relate WHERE iid = #{iid}
+    </select>
+
+    <!-- 获取图片点赞数 -->
+    <select id="getImageThumbCount" resultType="int">
+        SELECT COUNT(*) FROM tb_thumb_relate WHERE iid = #{iid}
+    </select>
+
+    <!-- 根据iid获取图片所有标签 -->
+    <select id="getImageAllTagsByiid" resultType="java.lang.String">
+        SELECT tagname FROM tb_tag WHERE tid IN (
+            SELECT tid FROM tb_tag_relate WHERE iid = #{iid}
+        )
+    </select>
+
+    <!-- 获取图片列表 -->
+    <select id="getImageList" resultType="com.pixelstack.ims.domain.ImageInfo">
+        SELECT iid, url, count FROM tb_image_info ORDER BY upload DESC
+    </select>
+
+    <!-- 根据用户ID获取图片列表 -->
+    <select id="getImageListByUid" resultType="com.pixelstack.ims.domain.ImageInfo">
+        SELECT iid, url, count
+        FROM tb_image_info i, tb_user_info u
+        WHERE uid = #{uid} AND u.username = i.author
+        ORDER BY upload DESC
+    </select>
+
+    <!-- 根据图片获取用户UID -->
+    <select id="getUidbyImage" resultType="java.lang.Integer">
+        SELECT uid
+        FROM tb_user_info u, tb_image_info i
+        WHERE u.username = i.author AND iid = #{iid}
+    </select>
+
+    <!-- 获取我的收藏 -->
+    <select id="selectMyStars" resultType="com.pixelstack.ims.domain.ImageInfo">
+        SELECT iid, count, url FROM tb_image_info WHERE iid IN
+        <foreach collection="list" item="iid" open="(" separator="," close=")">
+            #{iid}
+        </foreach>
+        ORDER BY upload DESC
+    </select>
+
+    <!-- 根据标签名获取图片列表 -->
+    <select id="getListByTagName" resultType="com.pixelstack.ims.domain.ImageInfo">
+        SELECT tb_tag_relate.iid, url, count
+        FROM tb_tag, tb_tag_relate, tb_image_info
+        WHERE tb_tag.tid = tb_tag_relate.tid
+        AND tagname = #{tagname}
+        AND tb_image_info.iid = tb_tag_relate.iid
+        ORDER BY upload DESC
+    </select>
+
+    <!-- 更新浏览次数 -->
+    <update id="updateCount">
+        UPDATE tb_image_info SET count = count + 1 WHERE iid = #{iid}
+    </update>
+
+    <!-- 更新标题 -->
+    <update id="updateTitle">
+        UPDATE tb_image_info SET title = #{title} WHERE iid = #{iid}
+    </update>
+
+    <!-- 根据标题或作者搜索 -->
+    <select id="getListByTitleOrAuthor" resultType="com.pixelstack.ims.domain.ImageInfo">
+        SELECT iid, url, count FROM tb_image_info
+        <where>
+            <if test="type == 'author' and search != null and search != ''">
+                author = #{search}
+            </if>
+            <if test="type == 'title' and search != null and search != ''">
+                title LIKE CONCAT('%', #{search}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

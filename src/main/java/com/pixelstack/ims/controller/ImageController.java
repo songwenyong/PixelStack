@@ -3,6 +3,8 @@ package com.pixelstack.ims.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageInfo;
 import com.pixelstack.ims.common.Auth.UserLoginToken;
+import com.pixelstack.ims.domain.ImageInfo;
+import com.pixelstack.ims.entity.*;
 import com.pixelstack.ims.service.GeneralService;
 import com.pixelstack.ims.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,6 @@ import java.util.*;
 @RequestMapping(value="/image")     // 通过这里配置使下面的映射都在 /user 下
 public class ImageController {
 
-    JSONObject result = new JSONObject();
 
     @Autowired
     ImageService imageService;
@@ -26,122 +27,102 @@ public class ImageController {
 
     @ResponseBody
     @GetMapping(value = {"/getImageDetails"})
-    public Object getImageDetails(int iid, @RequestParam(defaultValue = "0") int uid) throws IOException {
+    public ApiResponse<ImageDetailsResponse> getImageDetails(int iid, @RequestParam(defaultValue = "0") int uid) throws IOException {
         HashMap details = (HashMap) imageService.getImageDetailByiid(iid, uid);
-        result.clear();
         if (details == null) {
-            result.put("status", 500);
-            result.put("message", "图片不存在");
+            return ApiResponse.errorTyped("图片不存在");
         }
         else {
-            result.put("title", details.get("title"));
-            result.put("author", details.get("author"));
-            result.put("upload", details.get("upload"));
-            result.put("url", details.get("url"));
-            result.put("count", details.get("count"));
-            result.put("tags", details.get("tags"));
-            result.put("star", details.get("star"));
-            result.put("thumb", details.get("thumb"));
-            result.put("isStar", details.get("isStar"));
-            result.put("isThumb", details.get("isThumb"));
-            result.put("isFollow", details.get("isFollow"));
+            ImageDetailsResponse response = new ImageDetailsResponse(
+                (String) details.get("title"),
+                (String) details.get("author"),
+                (String) details.get("upload"),
+                (String) details.get("url"),
+                (Integer) details.get("count"),
+                (List<Object>) details.get("tags"),
+                (Integer) details.get("star"),
+                (Integer) details.get("thumb"),
+                (Boolean) details.get("isStar"),
+                (Boolean) details.get("isThumb"),
+                (Boolean) details.get("isFollow")
+            );
+            return ApiResponse.success(response);
         }
-        return result;
     }
 
     @ResponseBody
     @GetMapping(value = {"/getImageList"})
-    public Object getImageList(@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "60") int pageSize) {
-        PageInfo pageInfo = imageService.getImageList(pageNo, pageSize);
-        result.clear();
-        result.put("imageList", pageInfo.getList());
-        result.put("total", pageInfo.getTotal());
-        result.put("curPage", pageInfo.getPageNum());
-        result.put("prePage", pageInfo.getPrePage());
-        result.put("nextPage", pageInfo.getNextPage());
-        result.put("lastPage", pageInfo.getNavigateLastPage());
-        return result;
+    public ApiPageResponse<ImageListResponse> getImageList(@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "60") int pageSize) {
+        PageInfo<ImageInfo> pageInfo = imageService.getImageList(pageNo, pageSize);
+        ImageListResponse response = new ImageListResponse(pageInfo.getList());
+        return ApiPageResponse.success(response, pageInfo.getTotal(), pageInfo.getPageNum(),
+                pageInfo.getPrePage(), pageInfo.getNextPage(),
+                pageInfo.getNavigateLastPage());
     }
 
     @UserLoginToken
     @ResponseBody
     @GetMapping(value = {"/getImageListByUid"})
-    public Object getImageListByUid(int uid) {
-        List<Map<String,Object>> mapList =(List<Map<String,Object>>) imageService.getImageListByUid(uid);
-        result.clear();
-        result.put("imageList", mapList);
-        return result;
+    public ApiResponse<ImageListResponse> getImageListByUid(int uid) {
+        List<ImageInfo> imageList = imageService.getImageListByUid(uid);
+        ImageListResponse response = new ImageListResponse(imageList);
+        return ApiResponse.success(response);
     }
 
 
     @UserLoginToken
     @GetMapping(value = {"/isStar"})
-    public Object isStar(int iid, int uid, boolean isStar) {
-        result.clear();
+    public ApiResponse<StarStatusResponse> isStar(int iid, int uid, boolean isStar) {
         if (generalService.IsStar(iid, uid, isStar)) {
-            result.put("status", 200);
-            result.put("isStar", isStar);
+            StarStatusResponse response = new StarStatusResponse(isStar);
+            return ApiResponse.success(response);
         }
         else {
-            result.put("status", 500);
-            result.put("message", "error");
+            return ApiResponse.errorTyped("error");
         }
-        return result;
     }
 
     @UserLoginToken
     @GetMapping(value = {"/isThumb"})
-    public Object isThumb(int iid, int uid, boolean isThumb) {
-        result.clear();
+    public ApiResponse<ThumbStatusResponse> isThumb(int iid, int uid, boolean isThumb) {
         if (generalService.IsThumb(iid, uid, isThumb)) {
-            result.put("status", 200);
-            result.put("isThumb", isThumb);
+            ThumbStatusResponse response = new ThumbStatusResponse(isThumb);
+            return ApiResponse.success(response);
         }
         else {
-            result.put("status", 500);
-            result.put("message", "error");
+            return ApiResponse.errorTyped("error");
         }
-        return result;
     }
 
     @UserLoginToken
     @GetMapping(value = {"/myStars"})
-    public Object myStars(int uid) {
-        List<Map<String, Object>> myStars = null;
-        myStars = (List<Map<String, Object>>) imageService.getMyStars(uid);
-        result.clear();
-        result.put("status", 200);
-        result.put("starList", myStars);
-        return result;
+    public ApiResponse<StarListResponse> myStars(int uid) {
+        List<ImageInfo> myStars = imageService.getMyStars(uid);
+        StarListResponse response = new StarListResponse(myStars);
+        return ApiResponse.success(response);
     }
 
     @GetMapping(value = {"/getListBySearch"})
-    public Object getListByTagNameOrAuthorOrTitle(@RequestParam(defaultValue = "0") String type,
+    public ApiResponse<ImageListResponse> getListByTagNameOrAuthorOrTitle(@RequestParam(defaultValue = "0") String type,
                                                   @RequestParam(defaultValue = "海豹") String search)
     {
-        List<Map<String, Object>> Imgs = null;
-        Imgs = (List<Map<String, Object>>) imageService.getListByTagNameOrAuthorOrTitle(type, search);
-        result.clear();
-        if (Imgs == null)
-            result.put("status", 500);
-        else
-            result.put("status", 200);
-        result.put("ImageList", Imgs);
-        return result;
+        List<ImageInfo> imgs = imageService.getListByTagNameOrAuthorOrTitle(type, search);
+        if (imgs == null) {
+            return ApiResponse.errorTyped("搜索失败");
+        } else {
+            ImageListResponse response = new ImageListResponse(imgs);
+            return ApiResponse.success(response);
+        }
     }
 
     @UserLoginToken
     @PostMapping(value = "/updateTitle")
-    public Object updateTitle(int iid, String title) {
-        result.clear();
+    public ApiResponse<Void> updateTitle(int iid, String title) {
         if (title == null || title.equals("") || !imageService.updateTitle(iid, title)) {
-            result.put("status", 500);
-            result.put("message", "修改无效");
+            return ApiResponse.error("修改无效");
         }
         else {
-            result.put("status", 200);
-            result.put("message", "修改完成");
+            return ApiResponse.success("修改完成");
         }
-        return result;
     }
 }

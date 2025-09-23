@@ -4,6 +4,7 @@ package com.pixelstack.ims.service;
 import com.alibaba.fastjson.JSONObject;
 import com.pixelstack.ims.common.Auth.Authentication;
 import com.pixelstack.ims.domain.User;
+import com.pixelstack.ims.domain.UserCredential;
 import com.pixelstack.ims.mapper.AdminMapper;
 import com.pixelstack.ims.mapper.CommentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,17 +75,17 @@ public class AdminService extends UserService {
            if (!uids.isEmpty()) {
                //System.out.println(uids.size());
                //判断 token 是否存在
-               List<Map<String, Object>> errorUsers = userMapper.getUsersByuids(uids);
+               List<UserCredential> errorUsers = userMapper.getUsersByuids(uids);
                System.out.println(errorUsers.size());
 
-               Iterator errorList = errorUsers.iterator();
+               Iterator<UserCredential> errorList = errorUsers.iterator();
 
                while (errorList.hasNext()) {
-                   Map<String, Object> errorUser = (Map<String, Object>) errorList.next();
-                   //System.out.println(errorUser.get("uid") + ": " + errorUser.get("password"));
+                   UserCredential errorUser = errorList.next();
+                   //System.out.println(errorUser.getUid() + ": " + errorUser.getPassword());
                    User user = new User();
-                   user.setUid(Integer.parseInt(errorUser.get("uid").toString()));
-                   user.setPassword(errorUser.get("password").toString());
+                   user.setUid(errorUser.getUid());
+                   user.setPassword(errorUser.getPassword());
                    System.out.println(user.getUid() + ":" + user.getPassword());
                    authentication.deleteToken(user);
                }

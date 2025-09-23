@@ -1,13 +1,13 @@
 package com.pixelstack.ims.service;
 
 import com.pixelstack.ims.domain.Comment;
+import com.pixelstack.ims.domain.CommentInfo;
 import com.pixelstack.ims.mapper.CommentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class CommentService {
@@ -15,8 +15,8 @@ public class CommentService {
     @Autowired
     CommentMapper commentMapper;
 
-    public Object getCommentByiid(int iid) {
-        List<Map<String,String>> commentList = commentMapper.getCommentByiid(iid);
+    public List<CommentInfo> getCommentByiid(int iid) {
+        List<CommentInfo> commentList = commentMapper.getCommentByiid(iid);
         if (commentList == null)
             return null;
         else
@@ -47,8 +47,8 @@ public class CommentService {
             return true;
     }
 
-    public List<Map<String, Object>> getCommentWithReport() {
-        List<Map<String, Object>> commentList = commentMapper.getCommentWithReport();
+    public List<CommentInfo> getCommentWithReport() {
+        List<CommentInfo> commentList = commentMapper.getCommentWithReport();
         if (commentList == null)
             return null;
         else

@@ -3,11 +3,10 @@ package com.pixelstack.ims.service;
 import com.pixelstack.ims.common.Auth.Authentication;
 import com.pixelstack.ims.common.exception.InternalErrorException;
 import com.pixelstack.ims.domain.User;
+import com.pixelstack.ims.domain.UserInfoDetail;
 import com.pixelstack.ims.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
 
 @Service
 public class UserService {
@@ -73,8 +72,7 @@ public class UserService {
         return status;
     }
 
-    public HashMap getUserInfo(int uid) {
-        HashMap<String, Object> hashMap = new HashMap();
+    public UserInfoDetail getUserInfo(int uid) {
         User user = userMapper.selectUserById(uid);
         if (user == null)
             return null;
@@ -83,16 +81,17 @@ public class UserService {
             int starCount = userMapper.getStarCount(uid);
             int likeCount = userMapper.getThumbCount(uid);
             int fansCount = userMapper.getFansCount(uid);
-            hashMap.put("username", user.getUsername());
-            hashMap.put("email", user.getEmail());
-            hashMap.put("introduction", user.getIntroduction());
-            hashMap.put("authority", user.getAuthority());
-            hashMap.put("fans", fansCount);
-            hashMap.put("follow",followCount);
-            hashMap.put("star", starCount);
-            hashMap.put("like", likeCount);
 
-            return hashMap;
+            return new UserInfoDetail(
+                user.getUsername(),
+                user.getEmail(),
+                user.getIntroduction(),
+                user.getAuthority(),
+                fansCount,
+                followCount,
+                starCount,
+                likeCount
+            );
         }
     }
 

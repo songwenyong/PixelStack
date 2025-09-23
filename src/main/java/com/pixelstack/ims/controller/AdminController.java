@@ -6,14 +6,14 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.pixelstack.ims.common.Auth.UserLoginToken;
 import com.pixelstack.ims.domain.User;
+import com.pixelstack.ims.entity.ApiPageResponse;
 import com.pixelstack.ims.entity.ApiResponse;
+import com.pixelstack.ims.entity.UserListResponse;
 import com.pixelstack.ims.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping(value="/admin")
@@ -26,7 +26,7 @@ public class AdminController {
     @JsonView(User.UserSimpleView.class)
     @UserLoginToken
     @GetMapping(value = {"/getUserListByPage"})
-    public ApiResponse<Map<String, Object>> getUserListByPage(@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize, int type) {
+    public ApiPageResponse<UserListResponse> getUserListByPage(@RequestParam(defaultValue = "1") int pageNo, @RequestParam(defaultValue = "10") int pageSize, int type) {
         PageHelper.startPage(pageNo,pageSize);
         PageInfo<User> pageInfo = null;
         if (type == 0)
@@ -34,11 +34,9 @@ public class AdminController {
         else if (type == 1)
             pageInfo = new PageInfo<>(adminService.getAdminList());  // 查询管理员
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("userList", pageInfo.getList());
+        UserListResponse data = new UserListResponse(pageInfo.getList());
 
-        return ApiResponse.success(data)
-                .withPagination(pageInfo.getTotal(), pageInfo.getPageNum(),
+        return ApiPageResponse.success(data, pageInfo.getTotal(), pageInfo.getPageNum(),
                                pageInfo.getPrePage(), pageInfo.getNextPage(),
                                pageInfo.getNavigateLastPage());
     }
@@ -46,15 +44,14 @@ public class AdminController {
     @JsonView(User.UserSimpleView.class)
     @UserLoginToken
     @GetMapping(value = {"/getUserList"})
-    public ApiResponse<Map<String, Object>> getUserList(int type) {
+    public ApiResponse<UserListResponse> getUserList(int type) {
         List<User> userList = null;
         if (type == 0)
             userList = adminService.getUserList();
         else if (type == 1)
             userList = adminService.getAdminList();
 
-        Map<String, Object> data = new HashMap<>();
-        data.put("userList", userList);
+        UserListResponse data = new UserListResponse(userList);
         return ApiResponse.success(data);
     }
 

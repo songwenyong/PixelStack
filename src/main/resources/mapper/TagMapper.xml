@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.TagMapper">
+
+    <!-- 根据标签名查询标签 -->
+    <select id="selectTagByName" resultType="com.pixelstack.ims.domain.Tag">
+        SELECT * FROM tb_tag WHERE tagname = #{tagname}
+    </select>
+
+    <!-- 添加标签 -->
+    <insert id="addTagByName" parameterType="com.pixelstack.ims.domain.Tag" useGeneratedKeys="true" keyProperty="tid" keyColumn="tid">
+        INSERT INTO tb_tag(tagname) VALUES (#{tagname})
+    </insert>
+
+    <!-- 根据ID删除标签 -->
+    <delete id="deleteTagById">
+        DELETE FROM tb_tag WHERE tid = #{tid}
+    </delete>
+
+    <!-- 添加标签关联 -->
+    <insert id="addTagsRelate">
+        INSERT INTO tb_tag_relate(iid, tid) VALUES (#{iid}, #{tid})
+    </insert>
+
+</mapper>

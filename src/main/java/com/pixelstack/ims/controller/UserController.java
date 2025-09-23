@@ -8,6 +8,9 @@ import com.pixelstack.ims.common.exception.InternalErrorException;
 import com.pixelstack.ims.common.exception.NotFoundException;
 import com.pixelstack.ims.domain.Tag;
 import com.pixelstack.ims.domain.User;
+import com.pixelstack.ims.domain.UserInfo;
+import com.pixelstack.ims.domain.UserInfoDetail;
+import com.pixelstack.ims.entity.*;
 
 import com.pixelstack.ims.service.GeneralService;
 import com.pixelstack.ims.service.ImageService;
@@ -29,8 +32,6 @@ public class UserController {
 
     public final static int ERROR = 0;
 
-    JSONObject result = new JSONObject();
-
     @Autowired
     UserService userService;
 
@@ -48,11 +49,9 @@ public class UserController {
 
     @ResponseBody
     @PostMapping(value = {"/register"})
-    public Object userRegister(User user) throws InternalErrorException {
+    public ApiResponse<Void> userRegister(User user) throws InternalErrorException {
         if (user.getPassword() == null || user.getUsername() == null) {
-            result.put("status", "500");
-            result.put("message", "用户名或者密码为空");
-            return result;
+            return ApiResponse.error("用户名或者密码为空");
         }
         int status = userService.register(user, "user");
         if (status == ERROR) {
@@ -60,227 +59,183 @@ public class UserController {
             throw new InternalErrorException("username or password null", Result_Error.ErrorCode.INSERT_ERROR.getCode());
         }
         else {
-            result.put("status", "200");
-            result.put("message", "注册成功");
+            return ApiResponse.success("注册成功");
         }
-        return result;
     }
 
 
     @PostMapping(value = {"/login"})
-    public Object checkUser(User user) throws NotFoundException{
+    public ApiResponse<UserInfoResponse> checkUser(User user) throws NotFoundException{
         User login_user = userService.login(user);
-        result.clear();
         if (login_user == null) {
-            result.put("status", "500");
-            result.put("message", "用户不存在或者密码不正确");
+            return ApiResponse.errorTyped("用户不存在或者密码不正确");
         }
         else if (login_user.getStatus().equals("frozen")) {
-            result.put("status", "501");
-            result.put("message", "账户被冻结90天");
+            return ApiResponse.errorTyped("账户被冻结90天");
         }
         else if (login_user.getStatus().equals("terminate")) {
-            result.put("status", "502");
-            result.put("message", "账户被封停");
+            return ApiResponse.errorTyped("账户被封停");
         }
         else {
             // 登陆成功，创建 token 并保存至 redis 中
             String token = authentication.createToken(login_user);
             if (token != null && authentication.storeToken(token, login_user.getUid())) {
-                HashMap <String, Object> userInfo = new HashMap<String, Object>();
-                userInfo.put("uid", login_user.getUid());
-                userInfo.put("username", login_user.getUsername());
-                userInfo.put("email", login_user.getEmail());
-                userInfo.put("introduction", login_user.getIntroduction());
-                userInfo.put("status", login_user.getStatus());
-                userInfo.put("authority", login_user.getAuthority());
-                userInfo.put("token", token);
-                result.put("status", "200");
-                result.put("userInfo", userInfo);
+                UserInfoResponse userInfo = new UserInfoResponse(
+                    login_user.getUid(),
+                    login_user.getUsername(),
+                    login_user.getEmail(),
+                    login_user.getIntroduction(),
+                    login_user.getStatus(),
+                    login_user.getAuthority(),
+                    token
+                );
+                return ApiResponse.success(userInfo);
             }
             else {
-                result.put("status", "500");
-                result.put("message", "token 创建或设置失败，请稍后重试");
+                return ApiResponse.errorTyped("token 创建或设置失败，请稍后重试");
             }
-
         }
-        return result;
     }
 
 
     @UserLoginToken
     @GetMapping(value = {"/getUserInfo"})
-    public Object getUserInfo(int uid) {
-        Object userInfo = userService.getUserInfo(uid);
-        result.clear();
+    public ApiResponse<UserInfoDetail> getUserInfo(int uid) {
+        UserInfoDetail userInfo = userService.getUserInfo(uid);
         if (userInfo == null) {
-            result.put("status", "40401");
-            result.put("message", "无此用户");
+            return ApiResponse.errorTyped("无此用户");
         }
         else {
-            result.put("status", "200");
-            result.put("userInfo", userInfo);
+            return ApiResponse.success(userInfo);
         }
-        return result;
     }
 
     @UserLoginToken
     @PostMapping(value = {"/modify"})
-    public Object modify(User user) {
-        result.clear();
+    public ApiResponse<Void> modify(User user) {
         int status = userService.modify(user);
         if (status == 0) {
-            result.put("status", "500");
-            result.put("message", "信息修改不规范");
+            return ApiResponse.error("信息修改不规范");
         }
         else {
             if (status == 2) {
-                result.put("status", "201");
-                result.put("message", "密码已修改，请重新登陆");
+                return new ApiResponse<>(201, "密码已修改，请重新登陆");
             }
             else {
-                result.put("status", "200");
-                result.put("message", "修改成功");
+                return ApiResponse.success("修改成功");
             }
         }
-        return result;
     }
 
     @UserLoginToken
     @PostMapping(value = {"/upload"})
-    public Object upload(@RequestParam("file") MultipartFile[] files, int uid, String title) throws IOException {
-        result.clear();
+    public ApiResponse<UploadResponse> upload(@RequestParam("file") MultipartFile[] files, int uid, String title) throws IOException {
         if (files == null || files.length == 0) {
-            result.put("status", "500");
-            result.put("message", "前上传照片");
+            return ApiResponse.errorTyped("前上传照片");
         }
-        String username = (String) userService.getUserInfo(uid).get("username");
+        UserInfoDetail userDetail = userService.getUserInfo(uid);
+        String username = userDetail != null ? userDetail.getUsername() : null;
         if (username == null) {
-            result.put("status", "500");
-            result.put("message", "用户不存在");
+            return ApiResponse.errorTyped("用户不存在");
         }
         else {
             HashMap imageInfo = (HashMap) imageService.upload(files, username, title);
             ArrayList postList = (ArrayList) imageInfo.get("postList");
             ArrayList errorList  = (ArrayList) imageInfo.get("errorList");
-            if (errorList == null) {
-                result.put("fail", 0);
-            }
-            else {
-                result.put("errors", errorList);
-                result.put("fail", errorList.size());
 
-            }
+            UploadResponse uploadResponse = new UploadResponse(
+                postList,
+                errorList,
+                postList != null ? postList.size() : 0,
+                errorList != null ? errorList.size() : 0
+            );
 
-            result.put("upload", postList);
-            result.put("success", postList.size());
-            result.put("status", "200");
+            return ApiResponse.success(uploadResponse);
         }
-        return result;
     }
 
     @UserLoginToken
     @PostMapping(value = {"/deleteImage"})
-    public Object deleteImage(int iid) {
-        result.clear();
+    public ApiResponse<Void> deleteImage(int iid) {
         if (imageService.deleteImageByiid(iid)) {
-            result.put("status", 200);
-            result.put("message", "删除成功");
+            return ApiResponse.success("删除成功");
         } else {
-            result.put("status", 500);
-            result.put("message", "删除失败");
+            return ApiResponse.error("删除失败");
         }
-        return result;
     }
 
     @UserLoginToken
     @PostMapping(value = {"/addTagsandTitle"})
-    public Object addTags(@RequestBody JSONObject jsonObject) throws IOException{
+    public ApiResponse<Void> addTags(@RequestBody JSONObject jsonObject) throws IOException{
         ArrayList tags = (ArrayList) jsonObject.get("tags");
         ArrayList pids = (ArrayList) jsonObject.get("pids");
-        result.clear();
         if (pids == null || tags == null) {
-            result.put("status", 500);
-            result.put("tagIsAdd", "No");
+            return ApiResponse.error("Tags or pids are null");
         }
         else if (generalService.addTags(tags, pids)) {
-            result.put("status", 200);
-            result.put("tagIsAdd", "Yes");
+            return ApiResponse.success("添加标签成功");
+        } else {
+            return ApiResponse.error("添加标签失败");
         }
-        return result;
     }
 
     @GetMapping(value = {"/getUid"})
-    public Object getUidByUsername(String username) {
+    public ApiResponse<UidResponse> getUidByUsername(String username) {
         Integer uid = userService.getUidByUsername(username);
-        result.clear();
         if (uid == null) {
-            result.put("status", 500);
-            result.put("message", "查无此人");
+            return ApiResponse.errorTyped("查无此人");
         }
         else {
-            result.put("status", 200);
-            result.put("uid", uid);
+            UidResponse uidResponse = new UidResponse(uid);
+            return ApiResponse.success(uidResponse);
         }
-        return result;
     }
 
     @UserLoginToken
     @PostMapping(value = {"/isFollow"})
-    public Object isFollow(int uid, int fid, boolean isFollow) {
-        result.clear();
+    public ApiResponse<FollowStatusResponse> isFollow(int uid, int fid, boolean isFollow) {
         if (generalService.followOther(uid, fid, isFollow)) {
-            result.put("status", 200);
-            result.put("isFollow", isFollow);
+            FollowStatusResponse response = new FollowStatusResponse(isFollow);
+            return ApiResponse.success(response);
         }
         else {
-            result.put("status", 500);
-            result.put("message", "error");
+            return ApiResponse.errorTyped("error");
         }
-        return result;
     }
 
     @PostMapping(value = {"/followRelate"})
-    public Object followRelate(@RequestParam(defaultValue = "0") int uid, @RequestParam(defaultValue = "0") int fid) {
+    public ApiResponse<FollowStatusResponse> followRelate(@RequestParam(defaultValue = "0") int uid, @RequestParam(defaultValue = "0") int fid) {
         boolean isFollow = false;
-        result.clear();
         if (fid != 0 && generalService.Isfollow(uid, fid))
             isFollow = true;
-        result.put("status", 200);
-        result.put("isFollow", isFollow);
-        return result;
+        FollowStatusResponse response = new FollowStatusResponse(isFollow);
+        return ApiResponse.success(response);
     }
 
     @UserLoginToken
     @GetMapping(value = {"getFollowers"})
-    public Object getFollowers(int uid) {
-        List<Map<String, Object>> followers = generalService.getFollowers(uid);
-        result.clear();
+    public ApiResponse<FollowersResponse> getFollowers(int uid) {
+        List<UserInfo> followers = generalService.getFollowers(uid);
         if (followers == null) {
-            result.put("status", 500);
-            result.put("message", "error");
+            return ApiResponse.errorTyped("error");
         }
         else {
-            result.put("followers", followers);
-            result.put("status", 200);
+            FollowersResponse response = new FollowersResponse(followers);
+            return ApiResponse.success(response);
         }
-        return result;
     }
 
     @UserLoginToken
     @GetMapping(value = {"getFans"})
-    public Object getFans(int uid) {
-        List<Map<String, Object>> fans = generalService.getFans(uid);
-        result.clear();
+    public ApiResponse<FansResponse> getFans(int uid) {
+        List<UserInfo> fans = generalService.getFans(uid);
         if (fans == null) {
-            result.put("status", 500);
-            result.put("message", "maybe no fans");
+            return ApiResponse.errorTyped("maybe no fans");
         }
         else {
-            result.put("fans", fans);
-            result.put("status", 200);
+            FansResponse response = new FansResponse(fans);
+            return ApiResponse.success(response);
         }
-        return result;
     }
 
 

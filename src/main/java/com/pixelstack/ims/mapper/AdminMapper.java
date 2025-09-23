@@ -3,24 +3,17 @@ package com.pixelstack.ims.mapper;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.pixelstack.ims.domain.User;
-import com.pixelstack.ims.mapper.SqlProvider.UserSqlProvider;
-import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 public interface AdminMapper extends  UserMapper{
 
-    @SelectProvider(type = UserSqlProvider.class, method = "getUsers")
     Page<User> getUserList();
 
-    @SelectProvider(type = UserSqlProvider.class, method = "getAdmins")
     Page<User> getAdminList();
 
-    @UpdateProvider(type = UserSqlProvider.class, method = "updateAllStatus")
-    //@Update("update tb_user_info set status=#{status} where uid = #{uid}")
-    public int updateStateById(JSONObject jsonObject);
+    int updateStateById(JSONObject jsonObject);
 
-    @Select("select * from tb_user_info where authority = 'admin'")
-    public List<User> getAllAdmin();
+    List<User> getAllAdmin();
 
 }

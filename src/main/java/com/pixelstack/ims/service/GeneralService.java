@@ -1,6 +1,7 @@
 package com.pixelstack.ims.service;
 
 import com.pixelstack.ims.domain.Tag;
+import com.pixelstack.ims.domain.UserInfo;
 import com.pixelstack.ims.mapper.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 普通用户功能
@@ -122,8 +122,8 @@ public class GeneralService extends UserService {
 
     }
 
-    public List<Map<String, Object>> getFollowers(int uid) {
-        List<Map<String, Object>> followList = userMapper.getFollowers(uid);
+    public List<UserInfo> getFollowers(int uid) {
+        List<UserInfo> followList = userMapper.getFollowers(uid);
         if (followList == null)
             return null;
         else {
@@ -132,8 +132,8 @@ public class GeneralService extends UserService {
         return followList;
     }
 
-    public List<Map<String, Object>> getFans(int uid) {
-        List<Map<String, Object>> fansList = userMapper.getFans(uid);
+    public List<UserInfo> getFans(int uid) {
+        List<UserInfo> fansList = userMapper.getFans(uid);
         if (fansList == null)
             return null;
         else {
@@ -142,12 +142,12 @@ public class GeneralService extends UserService {
         return fansList;
     }
 
-    private void makeUp(List<Map<String, Object>> lists) {
-        Iterator iterator = lists.iterator();
+    private void makeUp(List<UserInfo> lists) {
+        Iterator<UserInfo> iterator = lists.iterator();
         while (iterator.hasNext()) {
-            Map<String, Object> follower = (Map<String, Object>) iterator.next();
-            if (follower.get("introduction") == null)
-                follower.put("introduction", null);
+            UserInfo follower = iterator.next();
+            if (follower.getIntroduction() == null)
+                follower.setIntroduction(null);
         }
     }
 

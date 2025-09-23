@@ -8,6 +8,7 @@ import com.pixelstack.ims.common.Auth.GetClientIp;
 import com.pixelstack.ims.common.ImageHelper.ImgResizeUtil;
 import com.pixelstack.ims.common.Redis.RedisOperator;
 import com.pixelstack.ims.domain.Image;
+import com.pixelstack.ims.domain.ImageInfo;
 import com.pixelstack.ims.mapper.ImageMapper;
 import com.pixelstack.ims.mapper.StarMapper;
 import com.pixelstack.ims.mapper.ThumbMapper;
@@ -207,14 +208,14 @@ public class ImageService {
         return details;
     }
 
-    public PageInfo<Map<String,Object>> getImageList(int pageNo, int pageSize) {
+    public PageInfo<ImageInfo> getImageList(int pageNo, int pageSize) {
         PageHelper.startPage(pageNo,pageSize);
-        PageInfo<Map<String,Object>> pageInfo = new PageInfo<>(imageMapper.getImageList());  // 根据用户 id 查询
-        List<Map<String,Object>> list = pageInfo.getList();
-        Iterator iterator = list.iterator();
+        PageInfo<ImageInfo> pageInfo = new PageInfo<>(imageMapper.getImageList());  // 根据用户 id 查询
+        List<ImageInfo> list = pageInfo.getList();
+        Iterator<ImageInfo> iterator = list.iterator();
         while (iterator.hasNext()) {
-            Map<String,Object> imageMap = (Map<String,Object>) iterator.next();
-            this.makeUp(imageMap);
+            ImageInfo imageInfo = iterator.next();
+            this.makeUp(imageInfo);
         }
         return pageInfo;
     }
@@ -223,50 +224,50 @@ public class ImageService {
         return date.toString().replace(date.toString().substring(11, 24), "");
     }
 
-    private void makeUp(Map<String,Object> imageMap) {
-        int star = starMapper.getStarByiid((Integer) imageMap.get("iid"));
-        int thumb = thumbMapper.getThumbByiid((Integer) imageMap.get("iid"));
-        String smallUrl = imageMap.get("url").toString().replace("original", "small");
-        imageMap.put("url", smallUrl);
-        imageMap.put("star", star);
-        imageMap.put("thumb", thumb);
+    private void makeUp(ImageInfo imageInfo) {
+        int star = starMapper.getStarByiid(imageInfo.getIid());
+        int thumb = thumbMapper.getThumbByiid(imageInfo.getIid());
+        String smallUrl = imageInfo.getUrl().replace("original", "small");
+        imageInfo.setUrl(smallUrl);
+        imageInfo.setStar(star);
+        imageInfo.setThumb(thumb);
     }
 
-    public List<Map<String,Object>> getImageListByUid(int uid) {
-        List<Map<String,Object>> mapList = (List<Map<String,Object>>) imageMapper.getImageListByUid(uid);
-        Iterator iterator = mapList.iterator();
+    public List<ImageInfo> getImageListByUid(int uid) {
+        List<ImageInfo> imageList = imageMapper.getImageListByUid(uid);
+        Iterator<ImageInfo> iterator = imageList.iterator();
         while (iterator.hasNext()) {
-            Map<String,Object> imageMap = (Map<String,Object>) iterator.next();
-            this.makeUp(imageMap);
+            ImageInfo imageInfo = iterator.next();
+            this.makeUp(imageInfo);
         }
-        return mapList;
+        return imageList;
     }
 
-    public List<Map<String, Object>> getMyStars(int uid) {
+    public List<ImageInfo> getMyStars(int uid) {
         List<Integer> stats = starMapper.getStars(uid);
         if (stats.size() == 0)
             return null;
         System.out.println(stats.toString());
-        List<Map<String, Object>> imgs = imageMapper.selectMyStars(stats);
-        Iterator iterator = imgs.iterator();
+        List<ImageInfo> imgs = imageMapper.selectMyStars(stats);
+        Iterator<ImageInfo> iterator = imgs.iterator();
         while (iterator.hasNext()) {
-            Map<String, Object> img = (Map<String, Object>) iterator.next();
+            ImageInfo img = iterator.next();
             this.makeUp(img);
         }
         return imgs;
     }
 
-    public List<Map<String, Object>> getListByTagNameOrAuthorOrTitle(String type, String search) {
-        List<Map<String, Object>> myTagImages;
+    public List<ImageInfo> getListByTagNameOrAuthorOrTitle(String type, String search) {
+        List<ImageInfo> myTagImages;
         if (type.equals("tag"))
             myTagImages = imageMapper.getListByTagName(search);
         else
             myTagImages = imageMapper.getListByTitleOrAuthor(type, search);
         if (myTagImages.size() == 0)
             return null;
-        Iterator iterator = myTagImages.iterator();
+        Iterator<ImageInfo> iterator = myTagImages.iterator();
         while (iterator.hasNext()) {
-            Map<String, Object> img = (Map<String, Object>) iterator.next();
+            ImageInfo img = iterator.next();
             this.makeUp(img);
         }
         return myTagImages;

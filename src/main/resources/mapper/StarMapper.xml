@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.StarMapper">
+
+    <!-- 根据图片ID获取收藏数 -->
+    <select id="getStarByiid" resultType="int">
+        SELECT COUNT(*) FROM tb_star_relate WHERE iid = #{iid}
+    </select>
+
+    <!-- 添加收藏 -->
+    <insert id="addStarByUid">
+        INSERT INTO tb_star_relate(uid, iid) VALUES (#{uid}, #{iid})
+    </insert>
+
+    <!-- 取消收藏 -->
+    <delete id="deleteStarByUid">
+        DELETE FROM tb_star_relate WHERE uid = #{uid} AND iid = #{iid}
+    </delete>
+
+    <!-- 检查是否收藏 -->
+    <select id="checkStarByUid" resultType="int">
+        SELECT COUNT(*) FROM tb_star_relate WHERE iid = #{iid} AND uid = #{uid}
+    </select>
+
+    <!-- 获取用户收藏的图片ID列表 -->
+    <select id="getStars" resultType="java.lang.Integer">
+        SELECT iid FROM tb_star_relate WHERE uid = #{uid}
+    </select>
+
+</mapper>

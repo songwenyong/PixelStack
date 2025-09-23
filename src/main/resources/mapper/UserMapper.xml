@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.UserMapper">
+
+    <!-- 添加用户 -->
+    <insert id="addUser" parameterType="com.pixelstack.ims.domain.User">
+        INSERT INTO tb_user_info(username, password, authority, email, status)
+        VALUES (#{username}, #{password}, #{authority}, #{email}, #{status})
+    </insert>
+
+    <!-- 检查用户登录 -->
+    <select id="checkUser" parameterType="com.pixelstack.ims.domain.User" resultType="com.pixelstack.ims.domain.User">
+        SELECT * FROM tb_user_info WHERE username = #{username} AND password = #{password}
+    </select>
+
+    <!-- 根据UID查询用户 -->
+    <select id="selectUserById" resultType="com.pixelstack.ims.domain.User">
+        SELECT * FROM tb_user_info WHERE uid = #{uid}
+    </select>
+
+    <!-- 动态更新用户信息 -->
+    <update id="updateUserById" parameterType="com.pixelstack.ims.domain.User">
+        UPDATE tb_user_info
+        <set>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="introduction != null">
+                introduction = #{introduction},
+            </if>
+        </set>
+        WHERE uid = #{uid}
+    </update>
+
+    <!-- 获取用户收藏数 -->
+    <select id="getStarCount" resultType="int">
+        SELECT COUNT(*) FROM tb_star_relate WHERE uid = #{uid}
+    </select>
+
+    <!-- 获取用户点赞数 -->
+    <select id="getThumbCount" resultType="int">
+        SELECT COUNT(*) FROM tb_thumb_relate WHERE uid = #{uid}
+    </select>
+
+    <!-- 获取粉丝数 -->
+    <select id="getFansCount" resultType="int">
+        SELECT COUNT(*) FROM tb_follow_relate WHERE fid = #{fid}
+    </select>
+
+    <!-- 获取关注数 -->
+    <select id="getFollowCount" resultType="int">
+        SELECT COUNT(*) FROM tb_follow_relate WHERE uid = #{uid}
+    </select>
+
+    <!-- 获取所有普通用户 -->
+    <select id="getAllUser" resultType="com.pixelstack.ims.domain.User">
+        SELECT * FROM tb_user_info WHERE authority = 'user'
+    </select>
+
+    <!-- 关注用户 -->
+    <insert id="follow">
+        INSERT INTO tb_follow_relate(uid, fid) VALUES (#{uid}, #{fid})
+    </insert>
+
+    <!-- 取消关注 -->
+    <delete id="unfollow">
+        DELETE FROM tb_follow_relate WHERE uid = #{uid} AND fid = #{fid}
+    </delete>
+
+    <!-- 检查是否关注 -->
+    <select id="checkFollowByFid" resultType="int">
+        SELECT COUNT(*) FROM tb_follow_relate WHERE uid = #{uid} AND fid = #{fid}
+    </select>
+
+    <!-- 根据用户名获取UID -->
+    <select id="getUidByUsername" resultType="java.lang.Integer">
+        SELECT uid FROM tb_user_info WHERE username = #{username}
+    </select>
+
+    <!-- 获取关注列表 -->
+    <select id="getFollowers" resultType="com.pixelstack.ims.domain.UserInfo">
+        SELECT f.fid, username, introduction
+        FROM tb_user_info u, tb_follow_relate f
+        WHERE f.fid = u.uid AND f.uid = #{uid}
+    </select>
+
+    <!-- 获取粉丝列表 -->
+    <select id="getFans" resultType="com.pixelstack.ims.domain.UserInfo">
+        SELECT f.uid, username, introduction
+        FROM tb_user_info u, tb_follow_relate f
+        WHERE f.uid = u.uid AND f.fid = #{uid}
+    </select>
+
+    <!-- 根据UID列表获取用户凭证 -->
+    <select id="getUsersByuids" resultType="com.pixelstack.ims.domain.UserCredential">
+        SELECT uid, password FROM tb_user_info WHERE uid IN
+        <foreach collection="list" item="uid" open="(" separator="," close=")">
+            #{uid}
+        </foreach>
+    </select>
+
+    <!-- 自动解冻用户 -->
+    <update id="unBlock">
+        UPDATE tb_user_info SET `status` = 'normal'
+        WHERE TIMEDIFF(NOW(), admindate) > TIME('00:01:00') AND `status` = 'frozen'
+    </update>
+
+</mapper>

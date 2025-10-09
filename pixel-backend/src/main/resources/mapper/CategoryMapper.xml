@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.CategoryMapper">
+
+    <select id="selectCategoryTree" resultType="com.pixelstack.ims.dto.CategoryDTO">
+        SELECT
+            c.id,
+            c.parent_id AS parentId,
+            c.category_name AS categoryName,
+            c.created_at AS createdAt,
+            COUNT(a.id) AS albumCount
+        FROM t_category c
+        LEFT JOIN t_album a ON c.id = a.category_id
+        GROUP BY c.id, c.parent_id, c.category_name, c.created_at
+        ORDER BY c.parent_id, c.created_at
+    </select>
+
+</mapper>

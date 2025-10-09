@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.AlbumMapper">
+
+    <select id="selectAlbumPage" resultType="com.pixelstack.ims.dto.AlbumDTO">
+        SELECT
+            a.id,
+            a.album_name AS albumName,
+            a.category_id AS categoryId,
+            c.category_name AS categoryName,
+            a.cover_image_id AS coverImageId,
+            i.url AS coverImageUrl,
+            a.creator,
+            u.username AS creatorName,
+            a.created_at AS createdAt,
+            COUNT(DISTINCT air.image_id) AS imageCount,
+            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared
+        FROM t_album a
+        LEFT JOIN t_category c ON a.category_id = c.id
+        LEFT JOIN t_image_info i ON a.cover_image_id = i.id
+        LEFT JOIN t_user_info u ON a.creator = u.id
+        LEFT JOIN t_album_image_relation air ON a.id = air.album_id
+        LEFT JOIN t_album_star_relation s ON a.id = s.album_id AND s.user_id = #{userId}
+        WHERE 1=1
+        <if test="categoryId != null">
+            AND a.category_id = #{categoryId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND a.album_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at, s.id
+        ORDER BY a.created_at DESC
+    </select>
+
+    <select id="selectStaredAlbumPage" resultType="com.pixelstack.ims.dto.AlbumDTO">
+        SELECT
+            a.id,
+            a.album_name AS albumName,
+            a.category_id AS categoryId,
+            c.category_name AS categoryName,
+            a.cover_image_id AS coverImageId,
+            i.url AS coverImageUrl,
+            a.creator,
+            u.username AS creatorName,
+            a.created_at AS createdAt,
+            COUNT(DISTINCT air.image_id) AS imageCount,
+            1 AS isStared
+        FROM t_album a
+        INNER JOIN t_album_star_relation s ON a.id = s.album_id
+        LEFT JOIN t_category c ON a.category_id = c.id
+        LEFT JOIN t_image_info i ON a.cover_image_id = i.id
+        LEFT JOIN t_user_info u ON a.creator = u.id
+        LEFT JOIN t_album_image_relation air ON a.id = air.album_id
+        WHERE s.user_id = #{userId}
+        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at
+        ORDER BY s.created_at DESC
+    </select>
+
+    <select id="selectAlbumDetail" resultType="com.pixelstack.ims.dto.AlbumDTO">
+        SELECT
+            a.id,
+            a.album_name AS albumName,
+            a.category_id AS categoryId,
+            c.category_name AS categoryName,
+            a.cover_image_id AS coverImageId,
+            ci.url AS coverImageUrl,
+            a.creator,
+            u.username AS creatorName,
+            a.created_at AS createdAt,
+            COUNT(DISTINCT air.image_id) AS imageCount,
+            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared,
+            GROUP_CONCAT(DISTINCT t.tag_name) AS tagNames
+        FROM t_album a
+        LEFT JOIN t_category c ON a.category_id = c.id
+        LEFT JOIN t_image_info ci ON a.cover_image_id = ci.id
+        LEFT JOIN t_user_info u ON a.creator = u.id
+        LEFT JOIN t_album_image_relation air ON a.id = air.album_id
+        LEFT JOIN t_album_star_relation s ON a.id = s.album_id AND s.user_id = #{userId}
+        LEFT JOIN t_album_tag_relation atr ON a.id = atr.album_id
+        LEFT JOIN t_tag t ON atr.tag_id = t.id
+        WHERE a.id = #{albumId}
+        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, ci.url, a.creator, u.username, a.created_at, s.id
+    </select>
+
+</mapper>

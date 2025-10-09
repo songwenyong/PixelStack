@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pixelstack.ims.mapper.ImageInfoMapper">
+
+    <select id="selectImagePage" resultType="com.pixelstack.ims.dto.ImageInfoDTO">
+        SELECT
+            i.id,
+            i.title,
+            i.format,
+            i.url,
+            i.thumbnail_url AS thumbnailUrl,
+            i.creator,
+            u.username AS creatorName,
+            i.created_at AS createdAt,
+            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared
+        FROM t_image_info i
+        LEFT JOIN t_user_info u ON i.creator = u.id
+        LEFT JOIN t_image_star_relation s ON i.id = s.image_id AND s.user_id = #{userId}
+        WHERE i.is_delete = 0
+        <if test="keyword != null and keyword != ''">
+            AND i.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY i.created_at DESC
+    </select>
+
+    <select id="selectStaredImagePage" resultType="com.pixelstack.ims.dto.ImageInfoDTO">
+        SELECT
+            i.id,
+            i.title,
+            i.format,
+            i.url,
+            i.thumbnail_url AS thumbnailUrl,
+            i.creator,
+            u.username AS creatorName,
+            i.created_at AS createdAt,
+            1 AS isStared
+        FROM t_image_info i
+        INNER JOIN t_image_star_relation s ON i.id = s.image_id
+        LEFT JOIN t_user_info u ON i.creator = u.id
+        WHERE s.user_id = #{userId} AND i.is_delete = 0
+        ORDER BY s.created_at DESC
+    </select>
+
+</mapper>

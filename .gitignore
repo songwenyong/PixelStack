@@ -24,6 +24,47 @@ HELP.md
 /nbdist/
 /.nb-gradle/
 /build/
+
+### Backend ###
+/ims-backend/target/
+/pixel-backend/target/
+*.jar
+*.war
+*.ear
+*.class
+*.log
+
+### Frontend ###
 /ims-ui/node_modules/
 /ims-ui/package-lock.json
-/ims-backend/target/
+/pixel-front/node_modules/
+/pixel-front/dist/
+/pixel-front/.vite/
+*.local
+
+### Environment & Config ###
+.env.local
+.env.*.local
+application-local.yml
+application-local.properties
+
+### OS ###
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+### Upload Files ###
+/uploads/
+/data/ims/upload/
+ims-uploads/
+
+### Logs ###
+logs/
+*.log
+*.log.*
+
+### Database ###
+*.sql.backup
+*.sql.bak

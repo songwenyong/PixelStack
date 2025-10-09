@@ -1,0 +1,70 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: ims-backend
+
+  profiles:
+    active: dev
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ims?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1qaz2wsx#EDC
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 20
+      minimum-idle: 10
+
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 30000
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+        max-wait: 3000
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: isDelete
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  level:
+    com.pixelstack.ims: debug
+    org.springframework.web: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+jwt:
+  secret: pixelstack-ims-jwt-secret-key-2024
+  expiration: 604800000  # 7 days in milliseconds
+
+file:
+  upload:
+    path: /data/ims/upload/
+    url-prefix: http://localhost:8080/api/files/

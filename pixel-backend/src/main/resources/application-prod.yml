@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ims?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+
+logging:
+  level:
+    com.pixelstack.ims: info
+    root: warn
+
+file:
+  upload:
+    path: ${FILE_UPLOAD_PATH:/data/ims/upload/prod/}
+    url-prefix: ${FILE_URL_PREFIX:http://localhost:8080/api/files/}

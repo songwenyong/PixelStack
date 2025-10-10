@@ -14,6 +14,8 @@ public class ImageInfo {
 
     private String title;
 
+    private String fileName;
+
     private String format;
 
     private String md5;

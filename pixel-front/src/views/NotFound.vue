@@ -1,8 +1,8 @@
 <template>
   <div class="not-found-container">
-    <n-result status="404" title="404 Not Found" description="The page you are looking for does not exist.">
+    <n-result status="404" :title="$t('notFound.title')" :description="$t('notFound.description')">
       <template #footer>
-        <n-button type="primary" @click="goHome">Back to Home</n-button>
+        <n-button type="primary" @click="goHome">{{ $t('notFound.backHome') }}</n-button>
       </template>
     </n-result>
   </div>
@@ -10,7 +10,9 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 
 const goHome = () => {

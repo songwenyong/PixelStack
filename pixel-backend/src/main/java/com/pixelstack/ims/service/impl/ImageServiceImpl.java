@@ -57,6 +57,7 @@ public class ImageServiceImpl implements ImageService {
 
             ImageInfo imageInfo = new ImageInfo();
             imageInfo.setTitle(StringUtils.isBlank(title) ? file.getOriginalFilename() : title);
+            imageInfo.setFileName(file.getOriginalFilename());
             imageInfo.setFormat(format);
             imageInfo.setMd5(md5);
             imageInfo.setUrl(urlPrefix + fileName);
@@ -68,6 +69,7 @@ public class ImageServiceImpl implements ImageService {
             ImageInfoDTO dto = new ImageInfoDTO();
             dto.setId(imageInfo.getId());
             dto.setTitle(imageInfo.getTitle());
+            dto.setFileName(imageInfo.getFileName());
             dto.setFormat(imageInfo.getFormat());
             dto.setUrl(imageInfo.getUrl());
             dto.setThumbnailUrl(imageInfo.getThumbnailUrl());

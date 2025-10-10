@@ -66,5 +66,5 @@ jwt:
 
 file:
   upload:
-    path: /data/ims/upload/
+    path: /Users/wenyong/Documents/pixel/
     url-prefix: http://localhost:8080/api/files/

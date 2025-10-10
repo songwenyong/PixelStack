@@ -66,7 +66,6 @@ export const useImageStore = defineStore('image', () => {
       const image = images.value.find(img => img.id === imageId)
       if (image) {
         image.isStared = true
-        image.starCount++
       }
     } catch (error) {
       console.error('Failed to star image:', error)
@@ -81,7 +80,6 @@ export const useImageStore = defineStore('image', () => {
       const image = images.value.find(img => img.id === imageId)
       if (image) {
         image.isStared = false
-        image.starCount--
       }
     } catch (error) {
       console.error('Failed to unstar image:', error)

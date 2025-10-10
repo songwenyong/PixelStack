@@ -2,19 +2,15 @@
 
 export interface ImageInfo {
   id: number
+  title: string
   fileName: string
-  filePath: string
-  fileUrl: string
-  fileSize: number
-  fileMd5: string
-  title?: string
-  width?: number
-  height?: number
-  uploadUserId: number
-  uploadUserName?: string
-  uploadTime: string
+  format: string
+  url: string
+  thumbnailUrl: string
+  creator: number
+  creatorName?: string
+  createdAt: string
   isStared: boolean
-  starCount: number
 }
 
 export interface UploadImageParams {

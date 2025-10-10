@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <n-card class="login-card" title="Login to PixelStack">
+    <n-card class="login-card" :title="$t('auth.loginToPixelStack')">
       <n-form
         ref="formRef"
         :model="formData"
@@ -8,20 +8,20 @@
         label-placement="top"
         require-mark-placement="right-hanging"
       >
-        <n-form-item label="Username" path="username">
+        <n-form-item :label="$t('auth.username')" path="username">
           <n-input
             v-model:value="formData.username"
-            placeholder="Enter your username"
+            :placeholder="$t('auth.enterUsername')"
             @keyup.enter="handleLogin"
           />
         </n-form-item>
 
-        <n-form-item label="Password" path="password">
+        <n-form-item :label="$t('auth.password')" path="password">
           <n-input
             v-model:value="formData.password"
             type="password"
             show-password-on="click"
-            placeholder="Enter your password"
+            :placeholder="$t('auth.enterPassword')"
             @keyup.enter="handleLogin"
           />
         </n-form-item>
@@ -33,7 +33,7 @@
             :loading="loading"
             @click="handleLogin"
           >
-            Login
+            {{ $t('auth.login') }}
           </n-button>
 
           <n-button
@@ -41,7 +41,7 @@
             block
             @click="goToRegister"
           >
-            Don't have an account? Register here
+            {{ $t('auth.noAccount') }}
           </n-button>
         </n-space>
       </n-form>
@@ -50,12 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, type FormInst, type FormRules } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import type { LoginParams } from '@/types/user'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const userStore = useUserStore()
@@ -68,27 +70,27 @@ const formData = reactive<LoginParams>({
   password: ''
 })
 
-const rules: FormRules = {
+const rules = computed((): FormRules => ({
   username: [
     {
       required: true,
-      message: 'Please enter your username',
+      message: $t('auth.usernameRequired'),
       trigger: 'blur'
     }
   ],
   password: [
     {
       required: true,
-      message: 'Please enter your password',
+      message: $t('auth.passwordRequired'),
       trigger: 'blur'
     },
     {
       min: 6,
-      message: 'Password must be at least 6 characters',
+      message: $t('auth.passwordMinLength'),
       trigger: 'blur'
     }
   ]
-}
+}))
 
 const handleLogin = async () => {
   try {
@@ -96,7 +98,7 @@ const handleLogin = async () => {
     loading.value = true
 
     await userStore.login(formData)
-    message.success('Login successful!')
+    message.success($t('auth.loginSuccess'))
     router.push('/')
   } catch (error: any) {
     if (error?.message) {

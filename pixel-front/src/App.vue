@@ -11,18 +11,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { darkTheme } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
 
+const { locale } = useI18n()
 const appStore = useAppStore()
 const userStore = useUserStore()
 
 const theme = computed(() => (appStore.isDark ? darkTheme : null))
 
-// Initialize user data from localStorage on app mount
+// Watch for locale changes in store and sync with i18n
+watch(() => appStore.locale, (newLocale) => {
+  locale.value = newLocale
+}, { immediate: true })
+
+// Initialize app data from localStorage on app mount
 onMounted(() => {
+  appStore.initLocale()
   userStore.initUserData()
 })
 </script>

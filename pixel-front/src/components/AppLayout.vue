@@ -32,7 +32,7 @@
               <template #icon>
                 <n-icon><CloudUploadOutline /></n-icon>
               </template>
-              Upload
+              {{ $t('common.upload') }}
             </n-button>
 
             <n-dropdown
@@ -47,11 +47,23 @@
               </n-button>
             </n-dropdown>
 
+            <n-dropdown
+              v-if="userStore.isLoggedIn"
+              :options="languageOptions"
+              @select="handleLanguageSelect"
+            >
+              <n-button circle>
+                <template #icon>
+                  <n-icon><LanguageOutline /></n-icon>
+                </template>
+              </n-button>
+            </n-dropdown>
+
             <n-button
               v-else
               @click="router.push('/login')"
             >
-              Login
+              {{ $t('auth.login') }}
             </n-button>
           </n-space>
         </div>
@@ -66,7 +78,7 @@
     <n-modal
       v-model:show="showUploadModal"
       preset="card"
-      title="Upload Image"
+      :title="$t('image.uploadImage')"
       style="width: 600px"
     >
       <n-upload
@@ -75,13 +87,13 @@
         accept="image/*"
         list-type="image-card"
       >
-        <n-button>Select Image</n-button>
+        <n-button>{{ $t('image.selectImage') }}</n-button>
       </n-upload>
 
-      <n-form-item label="Title (Optional)" style="margin-top: 16px">
+      <n-form-item :label="$t('image.imageTitle') + ' (' + $t('common.optional') + ')'" style="margin-top: 16px">
         <n-input
           v-model:value="uploadTitle"
-          placeholder="Enter image title"
+          :placeholder="$t('image.enterImageTitle')"
         />
       </n-form-item>
     </n-modal>
@@ -92,6 +104,7 @@
 import { ref, computed, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import {
   HomeOutline,
   ImagesOutline,
@@ -101,17 +114,22 @@ import {
   CloudUploadOutline,
   PersonOutline,
   LogOutOutline,
-  SettingsOutline
+  SettingsOutline,
+  LanguageOutline
 } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { useImageStore } from '@/stores/image'
+import { useAppStore } from '@/stores/app'
+import { LOCALE_OPTIONS } from '@/i18n'
 import type { UploadCustomRequestOptions } from 'naive-ui'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const message = useMessage()
 const userStore = useUserStore()
 const imageStore = useImageStore()
+const appStore = useAppStore()
 
 const collapsed = ref(false)
 const showUploadModal = ref(false)
@@ -125,36 +143,36 @@ const renderIcon = (icon: any) => {
 
 const menuOptions = computed(() => [
   {
-    label: 'Home',
+    label: $t('nav.home'),
     key: '/',
     icon: renderIcon(HomeOutline)
   },
   {
-    label: 'Images',
+    label: $t('nav.images'),
     key: '/images',
     icon: renderIcon(ImagesOutline)
   },
   {
-    label: 'Albums',
+    label: $t('nav.albums'),
     key: '/albums',
     icon: renderIcon(AlbumsOutline)
   },
   {
-    label: 'Categories',
+    label: $t('nav.categories'),
     key: '/categories',
     icon: renderIcon(FolderOutline)
   },
   {
-    label: 'Favorites',
+    label: $t('nav.favorites'),
     key: '/favorites',
     icon: renderIcon(StarOutline),
     children: [
       {
-        label: 'Starred Images',
+        label: $t('nav.starredImages'),
         key: '/favorites/images'
       },
       {
-        label: 'Starred Albums',
+        label: $t('nav.starredAlbums'),
         key: '/favorites/albums'
       }
     ]
@@ -163,12 +181,12 @@ const menuOptions = computed(() => [
 
 const userMenuOptions = computed(() => [
   {
-    label: 'Profile',
+    label: $t('common.profile'),
     key: 'profile',
     icon: renderIcon(PersonOutline)
   },
   {
-    label: 'Settings',
+    label: $t('common.settings'),
     key: 'settings',
     icon: renderIcon(SettingsOutline)
   },
@@ -177,11 +195,16 @@ const userMenuOptions = computed(() => [
     key: 'd1'
   },
   {
-    label: 'Logout',
+    label: $t('common.logout'),
     key: 'logout',
     icon: renderIcon(LogOutOutline)
   }
 ])
+
+const languageOptions = computed(() => LOCALE_OPTIONS.map(option => ({
+  label: option.label,
+  key: option.value
+})))
 
 const handleMenuSelect = (key: string) => {
   router.push(key)
@@ -197,17 +220,21 @@ const handleUserMenuSelect = (key: string) => {
       break
     case 'logout':
       userStore.logout()
-      message.success('Logged out successfully')
+      message.success($t('auth.logoutSuccess'))
       router.push('/login')
       break
   }
+}
+
+const handleLanguageSelect = (key: string) => {
+  appStore.setLocale(key)
 }
 
 const handleUpload = async (options: UploadCustomRequestOptions) => {
   try {
     const file = options.file.file as File
     await imageStore.uploadImage(file, uploadTitle.value)
-    message.success('Image uploaded successfully!')
+    message.success($t('image.uploadSuccess'))
     showUploadModal.value = false
     uploadTitle.value = ''
     options.onFinish()
@@ -216,7 +243,7 @@ const handleUpload = async (options: UploadCustomRequestOptions) => {
       imageStore.fetchImages()
     }
   } catch (error: any) {
-    message.error(error.message || 'Upload failed')
+    message.error(error.message || $t('image.uploadFailed'))
     options.onError()
   }
 }

@@ -19,6 +19,11 @@ public class JwtInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // Allow OPTIONS requests (CORS preflight)
+        if ("OPTIONS".equals(request.getMethod())) {
+            return true;
+        }
+
         String token = request.getHeader("Authorization");
 
         if (StringUtils.isBlank(token) || !token.startsWith("Bearer ")) {

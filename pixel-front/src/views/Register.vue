@@ -1,6 +1,6 @@
 <template>
   <div class="register-container">
-    <n-card class="register-card" title="Register for PixelStack">
+    <n-card class="register-card" :title="$t('auth.registerToPixelStack')">
       <n-form
         ref="formRef"
         :model="formData"
@@ -8,42 +8,42 @@
         label-placement="top"
         require-mark-placement="right-hanging"
       >
-        <n-form-item label="Username" path="username">
+        <n-form-item :label="$t('auth.username')" path="username">
           <n-input
             v-model:value="formData.username"
-            placeholder="Choose a username"
+            :placeholder="$t('auth.enterUsername')"
           />
         </n-form-item>
 
-        <n-form-item label="Email" path="email">
+        <n-form-item :label="$t('auth.email')" path="email">
           <n-input
             v-model:value="formData.email"
-            placeholder="Enter your email"
+            :placeholder="$t('auth.enterEmail')"
           />
         </n-form-item>
 
-        <n-form-item label="Nickname (Optional)" path="nickname">
+        <n-form-item :label="$t('auth.nickname') + ' (' + $t('common.optional') + ')'" path="nickname">
           <n-input
             v-model:value="formData.nickname"
-            placeholder="Enter your display name"
+            :placeholder="$t('auth.enterNickname')"
           />
         </n-form-item>
 
-        <n-form-item label="Password" path="password">
+        <n-form-item :label="$t('auth.password')" path="password">
           <n-input
             v-model:value="formData.password"
             type="password"
             show-password-on="click"
-            placeholder="Choose a password"
+            :placeholder="$t('auth.enterPassword')"
           />
         </n-form-item>
 
-        <n-form-item label="Confirm Password" path="confirmPassword">
+        <n-form-item :label="$t('auth.confirmPassword')" path="confirmPassword">
           <n-input
             v-model:value="formData.confirmPassword"
             type="password"
             show-password-on="click"
-            placeholder="Confirm your password"
+            :placeholder="$t('auth.enterConfirmPassword')"
             @keyup.enter="handleRegister"
           />
         </n-form-item>
@@ -55,7 +55,7 @@
             :loading="loading"
             @click="handleRegister"
           >
-            Register
+            {{ $t('auth.register') }}
           </n-button>
 
           <n-button
@@ -63,7 +63,7 @@
             block
             @click="goToLogin"
           >
-            Already have an account? Login here
+            {{ $t('auth.hasAccount') }}
           </n-button>
         </n-space>
       </n-form>
@@ -72,12 +72,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, type FormInst, type FormRules } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import type { RegisterParams } from '@/types/user'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const userStore = useUserStore()
@@ -95,61 +97,61 @@ const formData = reactive<RegisterParams & { confirmPassword: string }>({
 
 const validatePasswordMatch = (_rule: any, value: string) => {
   if (value !== formData.password) {
-    return new Error('Passwords do not match')
+    return new Error($t('auth.passwordNotMatch'))
   }
   return true
 }
 
-const rules: FormRules = {
+const rules = computed((): FormRules => ({
   username: [
     {
       required: true,
-      message: 'Please enter a username',
+      message: $t('auth.usernameRequired'),
       trigger: 'blur'
     },
     {
       min: 3,
-      message: 'Username must be at least 3 characters',
+      message: $t('auth.usernameMinLength'),
       trigger: 'blur'
     }
   ],
   email: [
     {
       required: true,
-      message: 'Please enter your email',
+      message: $t('auth.emailRequired'),
       trigger: 'blur'
     },
     {
       type: 'email',
-      message: 'Please enter a valid email',
+      message: $t('auth.emailInvalid'),
       trigger: 'blur'
     }
   ],
   password: [
     {
       required: true,
-      message: 'Please enter a password',
+      message: $t('auth.passwordRequired'),
       trigger: 'blur'
     },
     {
       min: 6,
-      message: 'Password must be at least 6 characters',
+      message: $t('auth.passwordMinLength'),
       trigger: 'blur'
     }
   ],
   confirmPassword: [
     {
       required: true,
-      message: 'Please confirm your password',
+      message: $t('auth.passwordRequired'),
       trigger: 'blur'
     },
     {
       validator: validatePasswordMatch,
-      message: 'Passwords do not match',
+      message: $t('auth.passwordNotMatch'),
       trigger: ['blur', 'input']
     }
   ]
-}
+}))
 
 const handleRegister = async () => {
   try {
@@ -159,7 +161,7 @@ const handleRegister = async () => {
     const { confirmPassword, ...registerData } = formData
     await userStore.register(registerData)
 
-    message.success('Registration successful! Please login.')
+    message.success($t('auth.registerSuccess'))
     router.push('/login')
   } catch (error: any) {
     if (error?.message) {

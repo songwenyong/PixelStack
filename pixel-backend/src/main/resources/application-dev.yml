@@ -16,5 +16,5 @@ logging:
 
 file:
   upload:
-    path: /data/ims/upload/dev/
+    path: /Users/wenyong/Documents/pixel/
     url-prefix: http://localhost:8080/api/files/

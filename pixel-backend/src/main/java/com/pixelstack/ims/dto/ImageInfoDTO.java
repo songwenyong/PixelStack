@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class ImageInfoDTO {
     private Long id;
     private String title;
+    private String fileName;
     private String format;
     private String url;
     private String thumbnailUrl;

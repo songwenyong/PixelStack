@@ -2,11 +2,11 @@
   <div class="albums-page">
     <n-space vertical :size="24">
       <n-space justify="space-between" align="center">
-        <h1>My Albums</h1>
+        <h1>{{ $t('albums.myAlbums') }}</h1>
         <n-space>
           <n-input
             v-model:value="searchKeyword"
-            placeholder="Search albums..."
+            :placeholder="$t('albums.searchAlbums')"
             clearable
             style="width: 300px"
             @update:value="handleSearch"
@@ -20,7 +20,7 @@
             <template #icon>
               <n-icon><AddOutline /></n-icon>
             </template>
-            Create Album
+            {{ $t('albums.createAlbum') }}
           </n-button>
         </n-space>
       </n-space>
@@ -60,7 +60,7 @@
 
                   <n-space justify="space-between" align="center">
                     <n-text depth="3">
-                      {{ album.imageCount }} images
+                      {{ album.imageCount }} {{ $t('albums.imagesCount') }}
                     </n-text>
 
                     <n-space @click.stop>
@@ -87,7 +87,7 @@
                             </template>
                           </n-button>
                         </template>
-                        Are you sure you want to delete this album?
+                        {{ $t('albums.deleteConfirmText') }}
                       </n-popconfirm>
                     </n-space>
                   </n-space>
@@ -99,12 +99,12 @@
 
         <n-empty
           v-if="!albumStore.loading && albumStore.albums.length === 0"
-          description="No albums found"
+          :description="$t('albums.noAlbumsFound')"
           style="margin-top: 60px"
         >
           <template #extra>
             <n-button type="primary" @click="showCreateModal = true">
-              Create your first album
+              {{ $t('albums.createFirstAlbum') }}
             </n-button>
           </template>
         </n-empty>
@@ -127,7 +127,7 @@
     <n-modal
       v-model:show="showCreateModal"
       preset="card"
-      title="Create Album"
+      :title="$t('albums.createAlbum')"
       style="width: 600px"
     >
       <n-form
@@ -136,18 +136,18 @@
         :rules="rules"
         label-placement="top"
       >
-        <n-form-item label="Album Name" path="albumName">
+        <n-form-item :label="$t('albums.albumName')" path="albumName">
           <n-input
             v-model:value="formData.albumName"
-            placeholder="Enter album name"
+            :placeholder="$t('albums.enterAlbumName')"
           />
         </n-form-item>
 
-        <n-form-item label="Description" path="description">
+        <n-form-item :label="$t('albums.description')" path="description">
           <n-input
             v-model:value="formData.description"
             type="textarea"
-            placeholder="Enter album description (optional)"
+            :placeholder="$t('albums.enterDescription')"
             :rows="3"
           />
         </n-form-item>
@@ -155,9 +155,9 @@
 
       <template #footer>
         <n-space justify="end">
-          <n-button @click="showCreateModal = false">Cancel</n-button>
+          <n-button @click="showCreateModal = false">{{ $t('albums.cancel') }}</n-button>
           <n-button type="primary" :loading="creating" @click="handleCreate">
-            Create
+            {{ $t('albums.create') }}
           </n-button>
         </n-space>
       </template>
@@ -169,6 +169,7 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, NIcon, type FormInst, type FormRules } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import {
   SearchOutline,
   AddOutline,
@@ -180,6 +181,7 @@ import {
 import { useAlbumStore } from '@/stores/album'
 import type { Album, CreateAlbumRequest } from '@/types/album'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const albumStore = useAlbumStore()
@@ -194,15 +196,15 @@ const formData = reactive<CreateAlbumRequest>({
   description: ''
 })
 
-const rules: FormRules = {
+const rules = computed((): FormRules => ({
   albumName: [
     {
       required: true,
-      message: 'Please enter album name',
+      message: $t('albums.albumNameRequired'),
       trigger: 'blur'
     }
   ]
-}
+}))
 
 const responsiveCols = computed(() => {
   return 'xs:1 s:2 m:3 l:4 xl:4 2xl:5'
@@ -233,7 +235,7 @@ const handleCreate = async () => {
     creating.value = true
 
     await albumStore.createAlbum(formData)
-    message.success('Album created successfully')
+    message.success($t('albums.createSuccess'))
     showCreateModal.value = false
     formData.albumName = ''
     formData.description = ''
@@ -250,22 +252,22 @@ const handleToggleStar = async (album: Album) => {
   try {
     if (album.isStared) {
       await albumStore.unstarAlbum(album.id)
-      message.success('Removed from favorites')
+      message.success($t('albums.removedFromFavorites'))
     } else {
       await albumStore.starAlbum(album.id)
-      message.success('Added to favorites')
+      message.success($t('albums.addedToFavorites'))
     }
   } catch (error: any) {
-    message.error(error.message || 'Operation failed')
+    message.error(error.message || $t('albums.operationFailed'))
   }
 }
 
 const handleDelete = async (albumId: number) => {
   try {
     await albumStore.deleteAlbum(albumId)
-    message.success('Album deleted successfully')
+    message.success($t('albums.deleteSuccess'))
   } catch (error: any) {
-    message.error(error.message || 'Failed to delete album')
+    message.error(error.message || $t('albums.deleteFailed'))
   }
 }
 

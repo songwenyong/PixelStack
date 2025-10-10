@@ -2,10 +2,10 @@
   <div class="images-page">
     <n-space vertical :size="24">
       <n-space justify="space-between" align="center">
-        <h1>My Images</h1>
+        <h1>{{ $t('images.myImages') }}</h1>
         <n-input
           v-model:value="searchKeyword"
-          placeholder="Search images..."
+          :placeholder="$t('images.searchImages')"
           clearable
           style="width: 300px"
           @update:value="handleSearch"
@@ -26,7 +26,7 @@
             >
               <div class="image-wrapper" @click="handleImageClick(image)">
                 <n-image
-                  :src="image.fileUrl"
+                  :src="image.url"
                   :alt="image.title || image.fileName"
                   object-fit="cover"
                   class="image"
@@ -51,7 +51,6 @@
                           <StarOutline v-else />
                         </n-icon>
                       </template>
-                      {{ image.starCount }}
                     </n-button>
 
                     <n-popconfirm
@@ -64,7 +63,7 @@
                           </template>
                         </n-button>
                       </template>
-                      Are you sure you want to delete this image?
+                      {{ $t('images.deleteConfirmText') }}
                     </n-popconfirm>
                   </n-space>
                 </n-space>
@@ -75,12 +74,12 @@
 
         <n-empty
           v-if="!imageStore.loading && imageStore.images.length === 0"
-          description="No images found"
+          :description="$t('images.noImagesFound')"
           style="margin-top: 60px"
         >
           <template #extra>
             <n-button @click="$router.push('/')">
-              Upload your first image
+              {{ $t('images.uploadFirstImage') }}
             </n-button>
           </template>
         </n-empty>
@@ -108,23 +107,23 @@
     >
       <div v-if="currentImage" class="image-detail">
         <n-image
-          :src="currentImage.fileUrl"
+          :src="currentImage.url"
           :alt="currentImage.title || currentImage.fileName"
           class="detail-image"
         />
 
         <n-descriptions bordered :column="2" style="margin-top: 16px">
-          <n-descriptions-item label="File Name">
+          <n-descriptions-item :label="$t('images.fileName')">
             {{ currentImage.fileName }}
           </n-descriptions-item>
-          <n-descriptions-item label="Upload Time">
-            {{ currentImage.uploadTime }}
+          <n-descriptions-item :label="$t('images.uploadTime')">
+            {{ currentImage.createdAt }}
           </n-descriptions-item>
-          <n-descriptions-item label="File Size">
-            {{ formatFileSize(currentImage.fileSize) }}
+          <n-descriptions-item :label="$t('images.format')">
+            {{ currentImage.format }}
           </n-descriptions-item>
-          <n-descriptions-item label="Dimensions">
-            {{ currentImage.width }} × {{ currentImage.height }}
+          <n-descriptions-item :label="$t('images.creator')">
+            {{ currentImage.creatorName || currentImage.creator }}
           </n-descriptions-item>
         </n-descriptions>
       </div>
@@ -135,10 +134,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useMessage, NIcon } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import { SearchOutline, StarOutline, Star, TrashOutline } from '@vicons/ionicons5'
 import { useImageStore } from '@/stores/image'
 import type { ImageInfo } from '@/types/image'
 
+const { t: $t } = useI18n()
 const message = useMessage()
 const imageStore = useImageStore()
 
@@ -173,34 +174,28 @@ const handleToggleStar = async (image: ImageInfo) => {
   try {
     if (image.isStared) {
       await imageStore.unstarImage(image.id)
-      message.success('Removed from favorites')
+      message.success($t('images.removedFromFavorites'))
     } else {
       await imageStore.starImage(image.id)
-      message.success('Added to favorites')
+      message.success($t('images.addedToFavorites'))
     }
   } catch (error: any) {
-    message.error(error.message || 'Operation failed')
+    message.error(error.message || $t('images.operationFailed'))
   }
 }
 
 const handleDelete = async (imageId: number) => {
   try {
     await imageStore.deleteImage(imageId)
-    message.success('Image deleted successfully')
+    message.success($t('images.imageDeleteSuccess'))
   } catch (error: any) {
-    message.error(error.message || 'Failed to delete image')
+    message.error(error.message || $t('images.imageDeleteFailed'))
   }
 }
 
 const handleImageClick = (image: ImageInfo) => {
   currentImage.value = image
   showDetailModal.value = true
-}
-
-const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) return bytes + ' B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
 }
 </script>
 

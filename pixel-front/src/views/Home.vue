@@ -3,10 +3,10 @@
     <n-space vertical :size="32">
       <div class="hero">
         <n-gradient-text :size="48" type="primary">
-          Welcome to PixelStack
+          {{ $t('home.welcomeTitle') }}
         </n-gradient-text>
         <p class="subtitle">
-          Your personal image management system
+          {{ $t('home.subtitle') }}
         </p>
       </div>
 
@@ -16,13 +16,13 @@
             <template #header>
               <n-space align="center">
                 <n-icon size="28" color="#3b82f6"><ImagesOutline /></n-icon>
-                <span>My Images</span>
+                <span>{{ $t('home.myImages') }}</span>
               </n-space>
             </template>
-            <n-statistic label="Total Images" :value="stats.totalImages" />
+            <n-statistic :label="$t('home.totalImages')" :value="stats.totalImages" />
             <template #footer>
               <n-button text type="primary" @click="$router.push('/images')">
-                View All →
+                {{ $t('home.viewAll') }}
               </n-button>
             </template>
           </n-card>
@@ -33,10 +33,10 @@
             <template #header>
               <n-space align="center">
                 <n-icon size="28" color="#10b981"><AlbumsOutline /></n-icon>
-                <span>My Albums</span>
+                <span>{{ $t('home.myAlbums') }}</span>
               </n-space>
             </template>
-            <n-statistic label="Total Albums" :value="stats.totalAlbums" />
+            <n-statistic :label="$t('home.totalAlbums')" :value="stats.totalAlbums" />
             <template #footer>
               <n-button text type="primary" @click="$router.push('/albums')">
                 View All →
@@ -50,10 +50,10 @@
             <template #header>
               <n-space align="center">
                 <n-icon size="28" color="#f59e0b"><StarOutline /></n-icon>
-                <span>Favorites</span>
+                <span>{{ $t('home.favorites') }}</span>
               </n-space>
             </template>
-            <n-statistic label="Starred Items" :value="stats.totalFavorites" />
+            <n-statistic :label="$t('home.starredItems')" :value="stats.totalFavorites" />
             <template #footer>
               <n-button text type="primary" @click="$router.push('/favorites/images')">
                 View All →
@@ -63,32 +63,32 @@
         </n-grid-item>
       </n-grid>
 
-      <n-card title="Quick Actions">
+      <n-card :title="$t('home.quickActions')">
         <n-space>
           <n-button type="primary" @click="showUploadDrawer = true">
             <template #icon>
               <n-icon><CloudUploadOutline /></n-icon>
             </template>
-            Upload Image
+            {{ $t('home.uploadImage') }}
           </n-button>
 
           <n-button @click="$router.push('/albums')">
             <template #icon>
               <n-icon><AddOutline /></n-icon>
             </template>
-            Create Album
+            {{ $t('home.createAlbum') }}
           </n-button>
 
           <n-button @click="$router.push('/categories')">
             <template #icon>
               <n-icon><FolderOutline /></n-icon>
             </template>
-            Manage Categories
+            {{ $t('home.manageCategories') }}
           </n-button>
         </n-space>
       </n-card>
 
-      <n-card title="Recent Images">
+      <n-card :title="$t('home.recentImages')">
         <n-spin :show="loading">
           <n-grid :cols="5" :x-gap="16" :y-gap="16" responsive="screen">
             <n-grid-item v-for="image in recentImages" :key="image.id">
@@ -99,7 +99,7 @@
               >
                 <div class="recent-image">
                   <n-image
-                    :src="image.fileUrl"
+                    :src="image.url"
                     :alt="image.title || image.fileName"
                     object-fit="cover"
                     lazy
@@ -111,12 +111,12 @@
 
           <n-empty
             v-if="!loading && recentImages.length === 0"
-            description="No images yet"
+            :description="$t('home.noImagesYet')"
             style="margin-top: 40px"
           >
             <template #extra>
               <n-button type="primary" @click="showUploadDrawer = true">
-                Upload your first image
+                {{ $t('home.uploadFirstImage') }}
               </n-button>
             </template>
           </n-empty>
@@ -126,20 +126,20 @@
 
     <!-- Upload Drawer -->
     <n-drawer v-model:show="showUploadDrawer" width="400">
-      <n-drawer-content title="Upload Image">
+      <n-drawer-content :title="$t('home.uploadImage')">
         <n-upload
           :custom-request="handleUpload"
           :max="1"
           accept="image/*"
           list-type="image-card"
         >
-          <n-button>Select Image</n-button>
+          <n-button>{{ $t('home.selectImage') }}</n-button>
         </n-upload>
 
-        <n-form-item label="Title (Optional)" style="margin-top: 16px">
+        <n-form-item :label="$t('image.imageTitle') + ' (' + $t('common.optional') + ')'" style="margin-top: 16px">
           <n-input
             v-model:value="uploadTitle"
-            placeholder="Enter image title"
+            :placeholder="$t('image.enterImageTitle')"
           />
         </n-form-item>
       </n-drawer-content>
@@ -151,6 +151,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMessage, NIcon, type UploadCustomRequestOptions } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
 import {
   ImagesOutline,
   AlbumsOutline,
@@ -163,6 +164,7 @@ import { useImageStore } from '@/stores/image'
 import { useAlbumStore } from '@/stores/album'
 import type { ImageInfo } from '@/types/image'
 
+const { t: $t } = useI18n()
 const router = useRouter()
 const message = useMessage()
 const imageStore = useImageStore()
@@ -205,7 +207,7 @@ const handleUpload = async (options: UploadCustomRequestOptions) => {
   try {
     const file = options.file.file as File
     await imageStore.uploadImage(file, uploadTitle.value)
-    message.success('Image uploaded successfully!')
+    message.success($t('home.uploadSuccess'))
     showUploadDrawer.value = false
     uploadTitle.value = ''
     options.onFinish()
@@ -215,7 +217,7 @@ const handleUpload = async (options: UploadCustomRequestOptions) => {
     recentImages.value = res.data.records.slice(0, 10)
     stats.totalImages = res.data.total
   } catch (error: any) {
-    message.error(error.message || 'Upload failed')
+    message.error(error.message || $t('home.uploadFailed'))
     options.onError()
   }
 }

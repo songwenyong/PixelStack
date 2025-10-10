@@ -6,6 +6,7 @@
         SELECT
             i.id,
             i.title,
+            i.file_name AS fileName,
             i.format,
             i.url,
             i.thumbnail_url AS thumbnailUrl,
@@ -27,6 +28,7 @@
         SELECT
             i.id,
             i.title,
+            i.file_name AS fileName,
             i.format,
             i.url,
             i.thumbnail_url AS thumbnailUrl,

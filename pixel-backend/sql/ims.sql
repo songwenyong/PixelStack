@@ -3,6 +3,7 @@ create table t_image_info
     id            bigint unsigned auto_increment comment '图片id'
         primary key,
     title         varchar(64) null comment '图片标题',
+    file_name     varchar(64) null comment '图片名称',
     format        varchar(64) null comment '图片格式',
     md5           varchar(64) null comment '图片MD5',
     url           varchar(256) null comment '图片路径',
@@ -14,6 +15,9 @@ create table t_image_info
     updated_at    datetime default CURRENT_TIMESTAMP not null comment '修改时间',
     unique (md5)
 ) comment '图片信息表';
+
+-- Migration: Add file_name column to existing table
+-- ALTER TABLE t_image_info ADD COLUMN file_name VARCHAR(64) NULL COMMENT '图片名称' AFTER title;
 
 create table t_album
 (

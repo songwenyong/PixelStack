@@ -85,7 +85,7 @@ create table t_user_info
     username     varchar(16) not null comment '用户名',
     password     varchar(16) not null comment '密码',
     role_type    int         not null default 1 comment '权限角色，0管理员 1普通用户',
-    email        varchar(16) not null comment '邮箱地址',
+    email        varchar(128) not null comment '邮箱地址',
     phone        varchar(16) not null default '' comment '手机号码',
     is_delete    varchar(16) null comment '账户状态 1已删除 0正常',
     introduction varchar(256) null comment '个人简介',

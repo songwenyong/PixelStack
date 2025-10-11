@@ -40,6 +40,42 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public CategoryDTO updateCategory(Long categoryId, String categoryName, Long parentId, Long userId) {
+        Category category = categoryMapper.selectById(categoryId);
+        if (category == null) {
+            throw new BusinessException("类目不存在");
+        }
+
+        if (!category.getCreator().equals(userId)) {
+            throw new BusinessException("无权限修改该类目");
+        }
+
+        // Prevent setting parent to self
+        if (categoryId.equals(parentId)) {
+            throw new BusinessException("不能将类目设置为自己的父类目");
+        }
+
+        // Prevent circular reference
+        if (parentId != null && isCircularReference(categoryId, parentId)) {
+            throw new BusinessException("不能将类目设置为其子类目的父类目");
+        }
+
+        category.setCategoryName(categoryName);
+        category.setParentId(parentId);
+        category.setUpdater(userId);
+
+        categoryMapper.updateById(category);
+
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setCategoryName(category.getCategoryName());
+        dto.setParentId(category.getParentId());
+        dto.setCreatedAt(category.getCreatedAt());
+
+        return dto;
+    }
+
+    @Override
     public void deleteCategory(Long categoryId, Long userId) {
         Category category = categoryMapper.selectById(categoryId);
         if (category == null) {
@@ -51,5 +87,23 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         categoryMapper.deleteById(categoryId);
+    }
+
+    /**
+     * Check if setting parentId would create a circular reference
+     */
+    private boolean isCircularReference(Long categoryId, Long parentId) {
+        Long currentParentId = parentId;
+        while (currentParentId != null) {
+            if (currentParentId.equals(categoryId)) {
+                return true;
+            }
+            Category parent = categoryMapper.selectById(currentParentId);
+            if (parent == null) {
+                break;
+            }
+            currentParentId = parent.getParentId();
+        }
+        return false;
     }
 }

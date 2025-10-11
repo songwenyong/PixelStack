@@ -31,6 +31,16 @@ public class CategoryController {
         return Result.success(category);
     }
 
+    @PutMapping("/{categoryId}")
+    public Result<CategoryDTO> updateCategory(@PathVariable Long categoryId,
+                                             @RequestParam String categoryName,
+                                             @RequestParam(required = false) Long parentId,
+                                             HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        CategoryDTO category = categoryService.updateCategory(categoryId, categoryName, parentId, userId);
+        return Result.success(category);
+    }
+
     @DeleteMapping("/{categoryId}")
     public Result<Void> deleteCategory(@PathVariable Long categoryId, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");

@@ -10,5 +10,7 @@ public interface CategoryService {
 
     CategoryDTO createCategory(String categoryName, Long parentId, Long userId);
 
+    CategoryDTO updateCategory(Long categoryId, String categoryName, Long parentId, Long userId);
+
     void deleteCategory(Long categoryId, Long userId);
 }

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,9 +51,10 @@ public class FileController {
     }
 
     @GetMapping("/**")
-    public void downloadFile(HttpServletResponse response, String fileName) {
+    public void downloadFile(HttpServletRequest request, HttpServletResponse response) {
         try {
-            String requestPath = fileName.substring("/files/".length());
+            String requestURI = request.getRequestURI();
+            String requestPath = requestURI.split("/files/")[1];
             File file = new File(uploadPath + requestPath);
 
             if (!file.exists()) {

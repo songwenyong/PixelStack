@@ -1,5 +1,5 @@
 import request from './request'
-import type { Category, CreateCategoryParams } from '@/types/category'
+import type { Category, CreateCategoryParams, UpdateCategoryParams } from '@/types/category'
 
 // Category API
 export const categoryApi = {
@@ -11,6 +11,11 @@ export const categoryApi = {
   // Create category
   createCategory(params: CreateCategoryParams) {
     return request.post<Category>('/category', null, { params })
+  },
+
+  // Update category
+  updateCategory(categoryId: number, params: UpdateCategoryParams) {
+    return request.put<Category>(`/category/${categoryId}`, null, { params })
   },
 
   // Delete category

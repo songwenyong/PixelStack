@@ -53,6 +53,14 @@ const routes: RouteRecordRaw[] = [
           title: 'Albums - PixelStack'
         }
       },
+      {
+        path: 'categories',
+        name: 'Categories',
+        component: () => import('@/views/Categories.vue'),
+        meta: {
+          title: 'Categories - PixelStack'
+        }
+      },
       // Commented out routes for views that don't exist yet
       // Uncomment these when the view files are created
       // {
@@ -61,14 +69,6 @@ const routes: RouteRecordRaw[] = [
       //   component: () => import('@/views/AlbumDetail.vue'),
       //   meta: {
       //     title: 'Album Detail - PixelStack'
-      //   }
-      // },
-      // {
-      //   path: 'categories',
-      //   name: 'Categories',
-      //   component: () => import('@/views/Categories.vue'),
-      //   meta: {
-      //     title: 'Categories - PixelStack'
       //   }
       // },
       // {

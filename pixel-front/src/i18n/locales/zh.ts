@@ -13,6 +13,7 @@ export default {
     save: '保存',
     cancel: '取消',
     confirm: '确认',
+    create: '创建',
     loading: '加载中...',
     noData: '暂无数据',
     operation: '操作',
@@ -173,6 +174,27 @@ export default {
     deleteSuccess: '分类删除成功',
     categoryColor: '分类颜色',
     selectColor: '选择颜色'
+  },
+
+  // Categories page
+  categories: {
+    title: '分类管理',
+    createCategory: '创建分类',
+    editCategory: '编辑分类',
+    categoryName: '分类名称',
+    parentCategory: '父级分类',
+    enterCategoryName: '请输入分类名称',
+    selectParentCategory: '选择父级分类（可选）',
+    categoryNameRequired: '请输入分类名称',
+    createSuccess: '分类创建成功',
+    updateSuccess: '分类更新成功',
+    deleteSuccess: '分类删除成功',
+    deleteFailed: '删除分类失败',
+    deleteConfirm: '删除分类',
+    deleteConfirmContent: '确定要删除"{name}"吗？所有子分类也将被删除。',
+    noCategories: '暂无分类',
+    createFirstCategory: '创建您的第一个分类',
+    addSubcategory: '添加'
   },
 
   // Messages

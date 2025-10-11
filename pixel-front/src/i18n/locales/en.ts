@@ -13,6 +13,7 @@ export default {
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
+    create: 'Create',
     loading: 'Loading...',
     noData: 'No Data',
     operation: 'Operation',
@@ -173,6 +174,27 @@ export default {
     deleteSuccess: 'Category deleted successfully',
     categoryColor: 'Category Color',
     selectColor: 'Select Color'
+  },
+
+  // Categories page
+  categories: {
+    title: 'Categories',
+    createCategory: 'Create Category',
+    editCategory: 'Edit Category',
+    categoryName: 'Category Name',
+    parentCategory: 'Parent Category',
+    enterCategoryName: 'Enter category name',
+    selectParentCategory: 'Select parent category (optional)',
+    categoryNameRequired: 'Please enter category name',
+    createSuccess: 'Category created successfully',
+    updateSuccess: 'Category updated successfully',
+    deleteSuccess: 'Category deleted successfully',
+    deleteFailed: 'Failed to delete category',
+    deleteConfirm: 'Delete Category',
+    deleteConfirmContent: 'Are you sure you want to delete "{name}"? All subcategories will also be deleted.',
+    noCategories: 'No categories yet',
+    createFirstCategory: 'Create your first category',
+    addSubcategory: 'Add'
   },
 
   // Messages

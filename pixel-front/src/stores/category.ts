@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Category, CreateCategoryParams } from '@/types/category'
+import type { Category, CreateCategoryParams, UpdateCategoryParams } from '@/types/category'
 import { categoryApi } from '@/api'
 
 export const useCategoryStore = defineStore('category', () => {
@@ -32,6 +32,18 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  const updateCategory = async (categoryId: number, params: UpdateCategoryParams) => {
+    loading.value = true
+    try {
+      const res = await categoryApi.updateCategory(categoryId, params)
+      // Refresh category tree
+      await fetchCategoryTree()
+      return res
+    } finally {
+      loading.value = false
+    }
+  }
+
   const deleteCategory = async (categoryId: number) => {
     loading.value = true
     try {
@@ -52,6 +64,7 @@ export const useCategoryStore = defineStore('category', () => {
     loading,
     fetchCategoryTree,
     createCategory,
+    updateCategory,
     deleteCategory,
     reset
   }

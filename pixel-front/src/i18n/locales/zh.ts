@@ -21,7 +21,8 @@ export default {
     language: '语言',
     logout: '退出登录',
     profile: '个人资料',
-    optional: '可选'
+    optional: '可选',
+    total: '共'
   },
 
   // Navigation
@@ -32,7 +33,9 @@ export default {
     categories: '分类',
     favorites: '收藏',
     starredImages: '收藏的图片',
-    starredAlbums: '收藏的相册'
+    starredAlbums: '收藏的相册',
+    allImages: '全部图片',
+    allAlbums: '全部相册'
   },
 
   // Authentication
@@ -127,9 +130,15 @@ export default {
     imagesCount: '张图片',
     albumName: '相册名称',
     description: '描述',
+    category: '分类',
+    tags: '标签',
     enterAlbumName: '请输入相册名称',
     enterDescription: '请输入相册描述（可选）',
+    selectCategory: '选择分类',
+    enterTag: '输入标签名称',
+    addTag: '添加',
     albumNameRequired: '请输入相册名称',
+    categoryRequired: '请选择分类',
     cancel: '取消',
     create: '创建',
     createSuccess: '相册创建成功',

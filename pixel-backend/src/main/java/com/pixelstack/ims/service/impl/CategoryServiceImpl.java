@@ -18,7 +18,38 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDTO> getCategoryTree() {
-        return categoryMapper.selectCategoryTree();
+        // Get all categories as flat list
+        List<CategoryDTO> allCategories = categoryMapper.selectCategoryTree();
+
+        // Build tree structure
+        return buildTree(allCategories, null);
+    }
+
+    /**
+     * Build hierarchical tree from flat list of categories
+     * @param allCategories All categories
+     * @param parentId Parent ID to filter by (null for root)
+     * @return List of categories at this level with their children populated
+     */
+    private List<CategoryDTO> buildTree(List<CategoryDTO> allCategories, Long parentId) {
+        List<CategoryDTO> result = new java.util.ArrayList<>();
+
+        for (CategoryDTO category : allCategories) {
+            // Match categories with the specified parent ID
+            boolean isMatch = (parentId == null && category.getParentId() == null) ||
+                            (parentId != null && parentId.equals(category.getParentId()));
+
+            if (isMatch) {
+                // Recursively find and set children
+                List<CategoryDTO> children = buildTree(allCategories, category.getId());
+                if (!children.isEmpty()) {
+                    category.setChildren(children);
+                }
+                result.add(category);
+            }
+        }
+
+        return result;
     }
 
     @Override

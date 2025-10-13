@@ -84,17 +84,23 @@
           </template>
         </n-empty>
 
-        <n-pagination
-          v-if="imageStore.total > imageStore.pageSize"
-          v-model:page="imageStore.currentPage"
-          v-model:page-size="imageStore.pageSize"
-          :page-count="Math.ceil(imageStore.total / imageStore.pageSize)"
-          show-size-picker
-          :page-sizes="[20, 40, 60, 100]"
-          style="margin-top: 24px; justify-content: center"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
+        <div v-if="imageStore.total > 0" class="pagination-wrapper">
+          <n-pagination
+            v-model:page="imageStore.currentPage"
+            v-model:page-size="imageStore.pageSize"
+            :page-count="Math.ceil(imageStore.total / imageStore.pageSize)"
+            :item-count="imageStore.total"
+            show-size-picker
+            show-quick-jumper
+            :page-sizes="[20, 50, 100, 200]"
+            @update:page="handlePageChange"
+            @update:page-size="handlePageSizeChange"
+          >
+            <template #prefix="{ itemCount }">
+              <span class="pagination-info">{{ $t('common.total') }}: {{ itemCount }}</span>
+            </template>
+          </n-pagination>
+        </div>
       </n-spin>
     </n-space>
 
@@ -132,7 +138,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { SearchOutline, StarOutline, Star, TrashOutline } from '@vicons/ionicons5'
@@ -140,34 +147,48 @@ import { useImageStore } from '@/stores/image'
 import type { ImageInfo } from '@/types/image'
 
 const { t: $t } = useI18n()
+const route = useRoute()
 const message = useMessage()
 const imageStore = useImageStore()
 
 const searchKeyword = ref('')
 const showDetailModal = ref(false)
 const currentImage = ref<ImageInfo | null>(null)
+const categoryId = ref<number | undefined>(undefined)
 
 const responsiveCols = computed(() => {
   return 'xs:1 s:2 m:3 l:4 xl:5 2xl:6'
 })
 
 onMounted(() => {
-  imageStore.fetchImages()
+  // Get categoryId from route query
+  const route = useRoute()
+  if (route.query.categoryId) {
+    categoryId.value = Number(route.query.categoryId)
+  }
+  imageStore.fetchImages({ categoryId: categoryId.value })
+})
+
+// Watch for route changes to update categoryId
+watch(() => route.query.categoryId, (newCategoryId) => {
+  categoryId.value = newCategoryId ? Number(newCategoryId) : undefined
+  imageStore.setPage(1)
+  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
 })
 
 const handleSearch = () => {
-  imageStore.fetchImages({ keyword: searchKeyword.value })
+  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handlePageChange = (page: number) => {
   imageStore.setPage(page)
-  imageStore.fetchImages({ keyword: searchKeyword.value })
+  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handlePageSizeChange = (pageSize: number) => {
   imageStore.setPageSize(pageSize)
   imageStore.setPage(1)
-  imageStore.fetchImages({ keyword: searchKeyword.value })
+  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handleToggleStar = async (image: ImageInfo) => {
@@ -203,6 +224,7 @@ const handleImageClick = (image: ImageInfo) => {
 .images-page {
   max-width: 1600px;
   margin: 0 auto;
+  padding: 0 16px;
 }
 
 .image-card {
@@ -231,5 +253,18 @@ const handleImageClick = (image: ImageInfo) => {
   max-width: 100%;
   max-height: 70vh;
   object-fit: contain;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding: 16px 0;
+}
+
+.pagination-info {
+  margin-right: 16px;
+  font-size: 14px;
+  color: var(--n-text-color);
 }
 </style>

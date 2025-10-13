@@ -29,8 +29,9 @@ export interface Tag {
 export interface CreateAlbumRequest {
   albumName: string
   description?: string
-  categoryId?: number
-  tagIds?: number[]
+  categoryId: number
+  coverImageId?: number
+  tagNames?: string[]
 }
 
 export interface AlbumPageParams {

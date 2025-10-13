@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h } from 'vue'
+import { ref, computed, h, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useMessage, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -120,8 +120,10 @@ import {
 import { useUserStore } from '@/stores/user'
 import { useImageStore } from '@/stores/image'
 import { useAppStore } from '@/stores/app'
+import { useCategoryStore } from '@/stores/category'
 import { LOCALE_OPTIONS } from '@/i18n'
 import type { UploadCustomRequestOptions } from 'naive-ui'
+import type { Category } from '@/types/category'
 
 const { t: $t } = useI18n()
 const router = useRouter()
@@ -130,54 +132,96 @@ const message = useMessage()
 const userStore = useUserStore()
 const imageStore = useImageStore()
 const appStore = useAppStore()
+const categoryStore = useCategoryStore()
 
 const collapsed = ref(false)
 const showUploadModal = ref(false)
 const uploadTitle = ref('')
 
-const activeKey = computed(() => route.path)
+const activeKey = computed(() => {
+  // Extract the base path and categoryId from query params
+  if (route.query.categoryId) {
+    return `${route.path}?categoryId=${route.query.categoryId}`
+  }
+  return route.path
+})
+
+onMounted(() => {
+  categoryStore.fetchCategoryTree()
+})
 
 const renderIcon = (icon: any) => {
   return () => h(NIcon, null, { default: () => h(icon) })
 }
 
-const menuOptions = computed(() => [
-  {
-    label: $t('nav.home'),
-    key: '/',
-    icon: renderIcon(HomeOutline)
-  },
-  {
-    label: $t('nav.images'),
-    key: '/images',
-    icon: renderIcon(ImagesOutline)
-  },
-  {
-    label: $t('nav.albums'),
-    key: '/albums',
-    icon: renderIcon(AlbumsOutline)
-  },
-  {
-    label: $t('nav.categories'),
-    key: '/categories',
-    icon: renderIcon(FolderOutline)
-  },
-  {
-    label: $t('nav.favorites'),
-    key: '/favorites',
-    icon: renderIcon(StarOutline),
-    children: [
-      {
-        label: $t('nav.starredImages'),
-        key: '/favorites/images'
-      },
-      {
-        label: $t('nav.starredAlbums'),
-        key: '/favorites/albums'
-      }
-    ]
-  }
-])
+// Convert category tree to menu options
+const convertCategoriesToMenuOptions = (categories: Category[], type: 'images' | 'albums'): any[] => {
+  return categories.map(category => ({
+    label: category.categoryName,
+    key: `/${type}?categoryId=${category.id}`,
+    children: category.children && category.children.length > 0
+      ? convertCategoriesToMenuOptions(category.children, type)
+      : undefined
+  }))
+}
+
+const menuOptions = computed(() => {
+  const imagesChildren = categoryStore.categories.length > 0
+    ? [
+        { label: $t('nav.allImages'), key: '/images' },
+        { type: 'divider', key: 'images-divider' },
+        ...convertCategoriesToMenuOptions(categoryStore.categories, 'images')
+      ]
+    : undefined
+
+  const albumsChildren = categoryStore.categories.length > 0
+    ? [
+        { label: $t('nav.allAlbums'), key: '/albums' },
+        { type: 'divider', key: 'albums-divider' },
+        ...convertCategoriesToMenuOptions(categoryStore.categories, 'albums')
+      ]
+    : undefined
+
+  return [
+    {
+      label: $t('nav.home'),
+      key: '/',
+      icon: renderIcon(HomeOutline)
+    },
+    {
+      label: $t('nav.images'),
+      key: '/images',
+      icon: renderIcon(ImagesOutline),
+      children: imagesChildren
+    },
+    {
+      label: $t('nav.albums'),
+      key: '/albums',
+      icon: renderIcon(AlbumsOutline),
+      children: albumsChildren
+    },
+    {
+      label: $t('nav.categories'),
+      key: '/categories',
+      icon: renderIcon(FolderOutline)
+    },
+    {
+      label: $t('nav.favorites'),
+      key: '/favorites',
+      icon: renderIcon(StarOutline),
+      children: [
+        {
+          label: $t('nav.starredImages'),
+          key: '/favorites/images'
+        },
+        {
+          label: $t('nav.starredAlbums'),
+          key: '/favorites/albums'
+        }
+      ]
+    }
+  ]
+})
 
 const userMenuOptions = computed(() => [
   {
@@ -207,7 +251,18 @@ const languageOptions = computed(() => LOCALE_OPTIONS.map(option => ({
 })))
 
 const handleMenuSelect = (key: string) => {
-  router.push(key)
+  // If key contains query params, parse and navigate
+  if (key.includes('?')) {
+    const [path, queryString] = key.split('?')
+    const params = new URLSearchParams(queryString)
+    const query: Record<string, string> = {}
+    params.forEach((value, key) => {
+      query[key] = value
+    })
+    router.push({ path, query })
+  } else {
+    router.push(key)
+  }
 }
 
 const handleUserMenuSelect = (key: string) => {

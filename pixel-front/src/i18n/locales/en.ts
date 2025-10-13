@@ -21,7 +21,8 @@ export default {
     language: 'Language',
     logout: 'Logout',
     profile: 'Profile',
-    optional: 'Optional'
+    optional: 'Optional',
+    total: 'Total'
   },
 
   // Navigation
@@ -32,7 +33,9 @@ export default {
     categories: 'Categories',
     favorites: 'Favorites',
     starredImages: 'Starred Images',
-    starredAlbums: 'Starred Albums'
+    starredAlbums: 'Starred Albums',
+    allImages: 'All Images',
+    allAlbums: 'All Albums'
   },
 
   // Authentication
@@ -127,9 +130,15 @@ export default {
     imagesCount: 'images',
     albumName: 'Album Name',
     description: 'Description',
+    category: 'Category',
+    tags: 'Tags',
     enterAlbumName: 'Enter album name',
     enterDescription: 'Enter album description (optional)',
+    selectCategory: 'Select category',
+    enterTag: 'Enter tag name',
+    addTag: 'Add',
     albumNameRequired: 'Please enter album name',
+    categoryRequired: 'Please select a category',
     cancel: 'Cancel',
     create: 'Create',
     createSuccess: 'Album created successfully',

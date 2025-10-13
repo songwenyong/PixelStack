@@ -84,9 +84,9 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public PageResult<ImageInfoDTO> getImagePage(Integer current, Integer size, String keyword, Long userId) {
+    public PageResult<ImageInfoDTO> getImagePage(Integer current, Integer size, Long categoryId, String keyword, Long userId) {
         Page<ImageInfoDTO> page = new Page<>(current, size);
-        IPage<ImageInfoDTO> result = imageInfoMapper.selectImagePage(page, userId, keyword);
+        IPage<ImageInfoDTO> result = imageInfoMapper.selectImagePage(page, userId, categoryId, keyword);
         return new PageResult<>(result.getRecords(), result.getTotal(), result.getSize(), result.getCurrent());
     }
 

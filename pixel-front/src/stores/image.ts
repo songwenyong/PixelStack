@@ -8,7 +8,7 @@ export const useImageStore = defineStore('image', () => {
   // State
   const images = ref<ImageInfo[]>([])
   const currentPage = ref(1)
-  const pageSize = ref(20)
+  const pageSize = ref(50)
   const total = ref(0)
   const loading = ref(false)
 
@@ -19,6 +19,7 @@ export const useImageStore = defineStore('image', () => {
       const res = await imageApi.getImagePage({
         current: params.current || currentPage.value,
         size: params.size || pageSize.value,
+        categoryId: params.categoryId,
         keyword: params.keyword
       })
       images.value = res.data.records

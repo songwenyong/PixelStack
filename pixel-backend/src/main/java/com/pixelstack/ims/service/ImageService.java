@@ -8,7 +8,7 @@ public interface ImageService {
 
     ImageInfoDTO uploadImage(MultipartFile file, String title, Long userId);
 
-    PageResult<ImageInfoDTO> getImagePage(Integer current, Integer size, String keyword, Long userId);
+    PageResult<ImageInfoDTO> getImagePage(Integer current, Integer size, Long categoryId, String keyword, Long userId);
 
     PageResult<ImageInfoDTO> getStaredImagePage(Integer current, Integer size, Long userId);
 

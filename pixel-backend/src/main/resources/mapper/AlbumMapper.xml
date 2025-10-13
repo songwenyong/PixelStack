@@ -6,6 +6,7 @@
         SELECT
             a.id,
             a.album_name AS albumName,
+            a.description,
             a.category_id AS categoryId,
             c.category_name AS categoryName,
             a.cover_image_id AS coverImageId,
@@ -14,13 +15,15 @@
             u.username AS creatorName,
             a.created_at AS createdAt,
             COUNT(DISTINCT air.image_id) AS imageCount,
-            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared
+            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared,
+            COUNT(DISTINCT s2.id) AS starCount
         FROM t_album a
         LEFT JOIN t_category c ON a.category_id = c.id
         LEFT JOIN t_image_info i ON a.cover_image_id = i.id
         LEFT JOIN t_user_info u ON a.creator = u.id
         LEFT JOIN t_album_image_relation air ON a.id = air.album_id
         LEFT JOIN t_album_star_relation s ON a.id = s.album_id AND s.user_id = #{userId}
+        LEFT JOIN t_album_star_relation s2 ON a.id = s2.album_id
         WHERE 1=1
         <if test="categoryId != null">
             AND a.category_id = #{categoryId}
@@ -28,7 +31,7 @@
         <if test="keyword != null and keyword != ''">
             AND a.album_name LIKE CONCAT('%', #{keyword}, '%')
         </if>
-        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at, s.id
+        GROUP BY a.id, a.album_name, a.description, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at, s.id
         ORDER BY a.created_at DESC
     </select>
 
@@ -36,6 +39,7 @@
         SELECT
             a.id,
             a.album_name AS albumName,
+            a.description,
             a.category_id AS categoryId,
             c.category_name AS categoryName,
             a.cover_image_id AS coverImageId,
@@ -44,15 +48,17 @@
             u.username AS creatorName,
             a.created_at AS createdAt,
             COUNT(DISTINCT air.image_id) AS imageCount,
-            1 AS isStared
+            1 AS isStared,
+            COUNT(DISTINCT s2.id) AS starCount
         FROM t_album a
         INNER JOIN t_album_star_relation s ON a.id = s.album_id
         LEFT JOIN t_category c ON a.category_id = c.id
         LEFT JOIN t_image_info i ON a.cover_image_id = i.id
         LEFT JOIN t_user_info u ON a.creator = u.id
         LEFT JOIN t_album_image_relation air ON a.id = air.album_id
+        LEFT JOIN t_album_star_relation s2 ON a.id = s2.album_id
         WHERE s.user_id = #{userId}
-        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at
+        GROUP BY a.id, a.album_name, a.description, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at
         ORDER BY s.created_at DESC
     </select>
 
@@ -60,6 +66,7 @@
         SELECT
             a.id,
             a.album_name AS albumName,
+            a.description,
             a.category_id AS categoryId,
             c.category_name AS categoryName,
             a.cover_image_id AS coverImageId,
@@ -69,6 +76,7 @@
             a.created_at AS createdAt,
             COUNT(DISTINCT air.image_id) AS imageCount,
             CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared,
+            COUNT(DISTINCT s2.id) AS starCount,
             GROUP_CONCAT(DISTINCT t.tag_name) AS tagNames
         FROM t_album a
         LEFT JOIN t_category c ON a.category_id = c.id
@@ -76,10 +84,11 @@
         LEFT JOIN t_user_info u ON a.creator = u.id
         LEFT JOIN t_album_image_relation air ON a.id = air.album_id
         LEFT JOIN t_album_star_relation s ON a.id = s.album_id AND s.user_id = #{userId}
+        LEFT JOIN t_album_star_relation s2 ON a.id = s2.album_id
         LEFT JOIN t_album_tag_relation atr ON a.id = atr.album_id
         LEFT JOIN t_tag t ON atr.tag_id = t.id
         WHERE a.id = #{albumId}
-        GROUP BY a.id, a.album_name, a.category_id, c.category_name, a.cover_image_id, ci.url, a.creator, u.username, a.created_at, s.id
+        GROUP BY a.id, a.album_name, a.description, a.category_id, c.category_name, a.cover_image_id, ci.url, a.creator, u.username, a.created_at, s.id
     </select>
 
 </mapper>

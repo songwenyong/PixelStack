@@ -14,6 +14,8 @@ public class Album {
 
     private String albumName;
 
+    private String description;
+
     private Long categoryId;
 
     private Long coverImageId;

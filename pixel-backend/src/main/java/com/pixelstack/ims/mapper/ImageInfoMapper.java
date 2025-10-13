@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ImageInfoMapper extends BaseMapper<ImageInfo> {
 
-    IPage<ImageInfoDTO> selectImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId, @Param("keyword") String keyword);
+    IPage<ImageInfoDTO> selectImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId, @Param("categoryId") Long categoryId, @Param("keyword") String keyword);
 
     IPage<ImageInfoDTO> selectStaredImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId);
 }

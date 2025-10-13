@@ -28,7 +28,7 @@ public class AlbumController {
 
     @GetMapping("/page")
     public Result<PageResult<AlbumDTO>> getAlbumPage(@RequestParam(defaultValue = "1") Integer current,
-                                                    @RequestParam(defaultValue = "20") Integer size,
+                                                    @RequestParam(defaultValue = "50") Integer size,
                                                     @RequestParam(required = false) Long categoryId,
                                                     @RequestParam(required = false) String keyword,
                                                     HttpServletRequest request) {
@@ -39,7 +39,7 @@ public class AlbumController {
 
     @GetMapping("/stared/page")
     public Result<PageResult<AlbumDTO>> getStaredAlbumPage(@RequestParam(defaultValue = "1") Integer current,
-                                                          @RequestParam(defaultValue = "20") Integer size,
+                                                          @RequestParam(defaultValue = "50") Integer size,
                                                           HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         PageResult<AlbumDTO> result = albumService.getStaredAlbumPage(current, size, userId);

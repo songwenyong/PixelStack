@@ -12,9 +12,11 @@ public class CreateAlbumRequest {
     @NotBlank(message = "相册名称不能为空")
     private String albumName;
 
+    private String description;
+
+    @NotNull(message = "相册分类不能为空")
     private Long categoryId;
 
-    @NotNull(message = "封面图片不能为空")
     private Long coverImageId;
 
     private List<String> tagNames;

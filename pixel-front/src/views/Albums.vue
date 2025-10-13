@@ -109,17 +109,23 @@
           </template>
         </n-empty>
 
-        <n-pagination
-          v-if="albumStore.total > albumStore.pageSize"
-          v-model:page="albumStore.currentPage"
-          v-model:page-size="albumStore.pageSize"
-          :page-count="Math.ceil(albumStore.total / albumStore.pageSize)"
-          show-size-picker
-          :page-sizes="[20, 40, 60]"
-          style="margin-top: 24px; justify-content: center"
-          @update:page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
+        <div v-if="albumStore.total > 0" class="pagination-wrapper">
+          <n-pagination
+            v-model:page="albumStore.currentPage"
+            v-model:page-size="albumStore.pageSize"
+            :page-count="Math.ceil(albumStore.total / albumStore.pageSize)"
+            :item-count="albumStore.total"
+            show-size-picker
+            show-quick-jumper
+            :page-sizes="[20, 50, 100, 200]"
+            @update:page="handlePageChange"
+            @update:page-size="handlePageSizeChange"
+          >
+            <template #prefix="{ itemCount }">
+              <span class="pagination-info">{{ $t('common.total') }}: {{ itemCount }}</span>
+            </template>
+          </n-pagination>
+        </div>
       </n-spin>
     </n-space>
 
@@ -151,6 +157,39 @@
             :rows="3"
           />
         </n-form-item>
+
+        <n-form-item :label="$t('albums.category')" path="categoryId">
+          <n-select
+            v-model:value="formData.categoryId"
+            :options="categoryOptions"
+            :placeholder="$t('albums.selectCategory')"
+          />
+        </n-form-item>
+
+        <n-form-item :label="$t('albums.tags')">
+          <n-space vertical style="width: 100%">
+            <n-space v-if="formData.tagNames && formData.tagNames.length > 0">
+              <n-tag
+                v-for="tag in formData.tagNames"
+                :key="tag"
+                closable
+                @close="handleRemoveTag(tag)"
+              >
+                {{ tag }}
+              </n-tag>
+            </n-space>
+            <n-input-group>
+              <n-input
+                v-model:value="tagInput"
+                :placeholder="$t('albums.enterTag')"
+                @keyup.enter="handleAddTag"
+              />
+              <n-button type="primary" @click="handleAddTag">
+                {{ $t('albums.addTag') }}
+              </n-button>
+            </n-input-group>
+          </n-space>
+        </n-form-item>
       </n-form>
 
       <template #footer>
@@ -166,8 +205,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, reactive, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useMessage, NIcon, type FormInst, type FormRules } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import {
@@ -179,21 +218,29 @@ import {
   AlbumsOutline
 } from '@vicons/ionicons5'
 import { useAlbumStore } from '@/stores/album'
+import { useCategoryStore } from '@/stores/category'
 import type { Album, CreateAlbumRequest } from '@/types/album'
+import type { Category } from '@/types/category'
 
 const { t: $t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const message = useMessage()
 const albumStore = useAlbumStore()
+const categoryStore = useCategoryStore()
 
 const searchKeyword = ref('')
 const showCreateModal = ref(false)
 const creating = ref(false)
 const formRef = ref<FormInst | null>(null)
+const categoryId = ref<number | undefined>(undefined)
+const tagInput = ref('')
 
 const formData = reactive<CreateAlbumRequest>({
   albumName: '',
-  description: ''
+  description: '',
+  categoryId: 0,
+  tagNames: []
 })
 
 const rules = computed((): FormRules => ({
@@ -203,6 +250,17 @@ const rules = computed((): FormRules => ({
       message: $t('albums.albumNameRequired'),
       trigger: 'blur'
     }
+  ],
+  categoryId: [
+    {
+      required: true,
+      type: 'number',
+      message: $t('albums.categoryRequired'),
+      trigger: ['blur', 'change'],
+      validator: (rule: any, value: any) => {
+        return value > 0
+      }
+    }
   ]
 }))
 
@@ -211,22 +269,68 @@ const responsiveCols = computed(() => {
 })
 
 onMounted(() => {
-  albumStore.fetchAlbums()
+  // Get categoryId from route query
+  if (route.query.categoryId) {
+    categoryId.value = Number(route.query.categoryId)
+  }
+  albumStore.fetchAlbums({ categoryId: categoryId.value })
+  categoryStore.fetchCategoryTree()
+})
+
+// Convert category tree to flat list for select options
+const categoryOptions = computed(() => {
+  const flattenCategories = (categories: Category[], level = 0): Array<{label: string, value: number}> => {
+    const result: Array<{label: string, value: number}> = []
+    for (const category of categories) {
+      result.push({
+        label: '　'.repeat(level) + category.categoryName,
+        value: category.id
+      })
+      if (category.children && category.children.length > 0) {
+        result.push(...flattenCategories(category.children, level + 1))
+      }
+    }
+    return result
+  }
+  return flattenCategories(categoryStore.categories)
+})
+
+const handleAddTag = () => {
+  if (tagInput.value && !formData.tagNames?.includes(tagInput.value)) {
+    if (!formData.tagNames) {
+      formData.tagNames = []
+    }
+    formData.tagNames.push(tagInput.value)
+    tagInput.value = ''
+  }
+}
+
+const handleRemoveTag = (tag: string) => {
+  if (formData.tagNames) {
+    formData.tagNames = formData.tagNames.filter(t => t !== tag)
+  }
+}
+
+// Watch for route changes to update categoryId
+watch(() => route.query.categoryId, (newCategoryId) => {
+  categoryId.value = newCategoryId ? Number(newCategoryId) : undefined
+  albumStore.setPage(1)
+  albumStore.fetchAlbums({ categoryId: categoryId.value, keyword: searchKeyword.value })
 })
 
 const handleSearch = () => {
-  albumStore.fetchAlbums({ keyword: searchKeyword.value })
+  albumStore.fetchAlbums({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handlePageChange = (page: number) => {
   albumStore.setPage(page)
-  albumStore.fetchAlbums({ keyword: searchKeyword.value })
+  albumStore.fetchAlbums({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handlePageSizeChange = (pageSize: number) => {
   albumStore.setPageSize(pageSize)
   albumStore.setPage(1)
-  albumStore.fetchAlbums({ keyword: searchKeyword.value })
+  albumStore.fetchAlbums({ categoryId: categoryId.value, keyword: searchKeyword.value })
 }
 
 const handleCreate = async () => {
@@ -239,6 +343,9 @@ const handleCreate = async () => {
     showCreateModal.value = false
     formData.albumName = ''
     formData.description = ''
+    formData.categoryId = 0
+    formData.tagNames = []
+    tagInput.value = ''
   } catch (error: any) {
     if (error?.message) {
       message.error(error.message)
@@ -280,6 +387,7 @@ const handleAlbumClick = (albumId: number) => {
 .albums-page {
   max-width: 1600px;
   margin: 0 auto;
+  padding: 0 16px;
 }
 
 .album-card {
@@ -312,5 +420,18 @@ const handleAlbumClick = (albumId: number) => {
   align-items: center;
   justify-content: center;
   color: var(--n-text-color-disabled);
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding: 16px 0;
+}
+
+.pagination-info {
+  margin-right: 16px;
+  font-size: 14px;
+  color: var(--n-text-color);
 }
 </style>

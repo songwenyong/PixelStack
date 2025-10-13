@@ -31,6 +31,7 @@ public class AlbumServiceImpl implements AlbumService {
     public AlbumDTO createAlbum(CreateAlbumRequest request, Long userId) {
         Album album = new Album();
         album.setAlbumName(request.getAlbumName());
+        album.setDescription(request.getDescription());
         album.setCategoryId(request.getCategoryId());
         album.setCoverImageId(request.getCoverImageId());
         album.setCreator(userId);

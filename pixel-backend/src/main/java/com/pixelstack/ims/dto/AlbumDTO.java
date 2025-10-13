@@ -9,6 +9,7 @@ import java.util.List;
 public class AlbumDTO {
     private Long id;
     private String albumName;
+    private String description;
     private Long categoryId;
     private String categoryName;
     private Long coverImageId;
@@ -18,6 +19,7 @@ public class AlbumDTO {
     private LocalDateTime createdAt;
     private Integer imageCount;
     private Boolean isStared;
+    private Integer starCount;
     private List<String> tagNames;
     private List<ImageInfoDTO> images;
 }

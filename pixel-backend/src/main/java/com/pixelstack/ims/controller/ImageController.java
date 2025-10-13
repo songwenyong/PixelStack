@@ -28,17 +28,18 @@ public class ImageController {
 
     @GetMapping("/page")
     public Result<PageResult<ImageInfoDTO>> getImagePage(@RequestParam(defaultValue = "1") Integer current,
-                                                        @RequestParam(defaultValue = "20") Integer size,
+                                                        @RequestParam(defaultValue = "50") Integer size,
+                                                        @RequestParam(required = false) Long categoryId,
                                                         @RequestParam(required = false) String keyword,
                                                         HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        PageResult<ImageInfoDTO> result = imageService.getImagePage(current, size, keyword, userId);
+        PageResult<ImageInfoDTO> result = imageService.getImagePage(current, size, categoryId, keyword, userId);
         return Result.success(result);
     }
 
     @GetMapping("/stared/page")
     public Result<PageResult<ImageInfoDTO>> getStaredImagePage(@RequestParam(defaultValue = "1") Integer current,
-                                                              @RequestParam(defaultValue = "20") Integer size,
+                                                              @RequestParam(defaultValue = "50") Integer size,
                                                               HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         PageResult<ImageInfoDTO> result = imageService.getStaredImagePage(current, size, userId);

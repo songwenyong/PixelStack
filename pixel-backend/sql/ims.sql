@@ -23,14 +23,19 @@ create table t_album
 (
     id             bigint unsigned auto_increment comment '相册id'
         primary key,
-    album_name     varchar(64) null comment '相册名称',
+    album_name     varchar(64)                        null comment '相册名称',
+    description    varchar(512)                       null comment '相册描述',
     category_id    bigint                             not null default 0 comment '相册所属类目,t_category表主键',
-    cover_image_id bigint                             not null comment '相册封面图片id,t_image_info表主键',
+    cover_image_id bigint                             null comment '相册封面图片id,t_image_info表主键',
+    description    varchar(1024)                      null comment '相册描述',
     creator        bigint unsigned                    not null comment '创建人id',
     updater        bigint unsigned                    null comment '修改人id',
     created_at     datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updated_at     datetime default CURRENT_TIMESTAMP not null comment '修改时间'
 ) comment '相册表';
+
+-- Migration: Add description column to existing table
+-- ALTER TABLE t_album ADD COLUMN description VARCHAR(512) NULL COMMENT '相册描述' AFTER album_name;
 
 create table t_album_image_relation
 (

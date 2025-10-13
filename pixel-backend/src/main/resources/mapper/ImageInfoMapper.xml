@@ -3,7 +3,7 @@
 <mapper namespace="com.pixelstack.ims.mapper.ImageInfoMapper">
 
     <select id="selectImagePage" resultType="com.pixelstack.ims.dto.ImageInfoDTO">
-        SELECT
+        SELECT DISTINCT
             i.id,
             i.title,
             i.file_name AS fileName,
@@ -17,6 +17,10 @@
         FROM t_image_info i
         LEFT JOIN t_user_info u ON i.creator = u.id
         LEFT JOIN t_image_star_relation s ON i.id = s.image_id AND s.user_id = #{userId}
+        <if test="categoryId != null">
+            INNER JOIN t_album_image_relation air ON i.id = air.image_id
+            INNER JOIN t_album a ON air.album_id = a.id AND a.category_id = #{categoryId}
+        </if>
         WHERE i.is_delete = 0
         <if test="keyword != null and keyword != ''">
             AND i.title LIKE CONCAT('%', #{keyword}, '%')

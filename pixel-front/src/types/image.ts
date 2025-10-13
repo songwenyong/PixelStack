@@ -21,5 +21,6 @@ export interface UploadImageParams {
 export interface ImagePageParams {
   current?: number
   size?: number
+  categoryId?: number
   keyword?: string
 }

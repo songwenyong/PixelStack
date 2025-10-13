@@ -8,7 +8,7 @@ export const useAlbumStore = defineStore('album', () => {
   const albums = ref<Album[]>([])
   const currentAlbum = ref<Album | null>(null)
   const currentPage = ref(1)
-  const pageSize = ref(20)
+  const pageSize = ref(50)
   const total = ref(0)
   const loading = ref(false)
 

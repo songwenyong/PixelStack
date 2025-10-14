@@ -5,11 +5,13 @@ import com.pixelstack.ims.dto.PageResult;
 import com.pixelstack.ims.service.ImageService;
 import com.pixelstack.ims.util.Result;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Slf4j
 @RestController
 @RequestMapping("/image")
 @RequiredArgsConstructor
@@ -22,7 +24,9 @@ public class ImageController {
                                            @RequestParam(value = "title", required = false) String title,
                                            HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
+        log.info("Image upload attempt: userId={}, filename={}, size={}", userId, file.getOriginalFilename(), file.getSize());
         ImageInfoDTO imageInfo = imageService.uploadImage(file, title, userId);
+        log.info("Image upload successful: userId={}, imageId={}", userId, imageInfo.getId());
         return Result.success(imageInfo);
     }
 

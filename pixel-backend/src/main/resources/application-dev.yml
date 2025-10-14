@@ -10,6 +10,8 @@ spring:
     password:
 
 logging:
+  file:
+    path: logs
   level:
     com.pixelstack.ims: debug
     root: info

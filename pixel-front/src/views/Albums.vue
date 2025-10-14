@@ -77,6 +77,16 @@
                         {{ album.starCount }}
                       </n-button>
 
+                      <n-button
+                        text
+                        type="info"
+                        @click="handleEditClick(album.id)"
+                      >
+                        <template #icon>
+                          <n-icon><CreateOutline /></n-icon>
+                        </template>
+                      </n-button>
+
                       <n-popconfirm
                         @positive-click="handleDelete(album.id)"
                       >
@@ -201,6 +211,141 @@
         </n-space>
       </template>
     </n-modal>
+
+    <!-- Edit Album Modal -->
+    <n-modal
+      v-model:show="showEditModal"
+      preset="card"
+      :title="$t('albums.editAlbum')"
+      style="width: 900px"
+    >
+      <n-spin :show="loadingEditData">
+        <n-form
+          ref="editFormRef"
+          :model="editFormData"
+          :rules="editRules"
+          label-placement="top"
+        >
+          <n-form-item :label="$t('albums.albumName')" path="albumName">
+            <n-input
+              v-model:value="editFormData.albumName"
+              :placeholder="$t('albums.enterAlbumName')"
+            />
+          </n-form-item>
+
+          <n-form-item :label="$t('albums.description')" path="description">
+            <n-input
+              v-model:value="editFormData.description"
+              type="textarea"
+              :placeholder="$t('albums.enterDescription')"
+              :rows="3"
+            />
+          </n-form-item>
+
+          <n-form-item :label="$t('albums.category')" path="categoryId">
+            <n-select
+              v-model:value="editFormData.categoryId"
+              :options="categoryOptions"
+              :placeholder="$t('albums.selectCategory')"
+            />
+          </n-form-item>
+
+          <n-form-item :label="$t('albums.tags')">
+            <n-space vertical style="width: 100%">
+              <n-space v-if="editFormData.tagNames && editFormData.tagNames.length > 0">
+                <n-tag
+                  v-for="tag in editFormData.tagNames"
+                  :key="tag"
+                  closable
+                  @close="handleRemoveEditTag(tag)"
+                >
+                  {{ tag }}
+                </n-tag>
+              </n-space>
+              <n-input-group>
+                <n-input
+                  v-model:value="editTagInput"
+                  :placeholder="$t('albums.enterTag')"
+                  @keyup.enter="handleAddEditTag"
+                />
+                <n-button type="primary" @click="handleAddEditTag">
+                  {{ $t('albums.addTag') }}
+                </n-button>
+              </n-input-group>
+            </n-space>
+          </n-form-item>
+
+          <n-form-item :label="$t('albums.selectImages')">
+            <n-space vertical style="width: 100%">
+              <n-spin :show="loadingImages">
+                <div v-if="availableImages.length === 0" style="text-align: center; padding: 24px">
+                  <n-text depth="3">{{ $t('albums.noImagesAvailable') }}</n-text>
+                </div>
+                <div v-else class="image-selection-grid">
+                  <div
+                    v-for="image in availableImages"
+                    :key="image.id"
+                    class="image-selection-item"
+                    :class="{
+                      'selected': selectedImages.includes(image.id),
+                      'cover': coverImageId === image.id
+                    }"
+                  >
+                    <n-checkbox
+                      :checked="selectedImages.includes(image.id)"
+                      @update:checked="(checked: boolean) => handleImageSelect(image.id, checked)"
+                      class="image-checkbox"
+                    />
+                    <div class="image-wrapper" @click="handleImageSelect(image.id, !selectedImages.includes(image.id))">
+                      <n-image
+                        :src="image.thumbnailUrl || image.url"
+                        :alt="image.title"
+                        object-fit="cover"
+                        class="selection-image"
+                        lazy
+                      />
+                    </div>
+                    <div class="image-info">
+                      <n-ellipsis style="font-size: 12px">{{ image.title }}</n-ellipsis>
+                      <n-button
+                        v-if="selectedImages.includes(image.id)"
+                        size="tiny"
+                        :type="coverImageId === image.id ? 'primary' : 'default'"
+                        @click="handleSetCover(image.id)"
+                        style="margin-top: 4px"
+                      >
+                        {{ coverImageId === image.id ? $t('albums.coverImage') : $t('albums.setAsCover') }}
+                      </n-button>
+                    </div>
+                  </div>
+                </div>
+              </n-spin>
+              <n-space justify="space-between" align="center" style="margin-top: 8px">
+                <n-text depth="3">
+                  {{ $t('albums.selectedImagesCount', { count: selectedImages.length }) }}
+                </n-text>
+                <n-pagination
+                  v-if="imageTotalPages > 1"
+                  v-model:page="imageCurrentPage"
+                  :page-count="imageTotalPages"
+                  size="small"
+                  @update:page="handleImagePageChange"
+                />
+              </n-space>
+            </n-space>
+          </n-form-item>
+        </n-form>
+      </n-spin>
+
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="handleCancelEdit">{{ $t('albums.cancel') }}</n-button>
+          <n-button type="primary" :loading="updating" @click="handleUpdate">
+            {{ $t('albums.save') }}
+          </n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -215,12 +360,16 @@ import {
   StarOutline,
   Star,
   TrashOutline,
-  AlbumsOutline
+  AlbumsOutline,
+  CreateOutline
 } from '@vicons/ionicons5'
 import { useAlbumStore } from '@/stores/album'
 import { useCategoryStore } from '@/stores/category'
-import type { Album, CreateAlbumRequest } from '@/types/album'
+import { albumApi } from '@/api/album'
+import { imageApi } from '@/api/image'
+import type { Album, CreateAlbumRequest, UpdateAlbumRequest } from '@/types/album'
 import type { Category } from '@/types/category'
+import type { ImageInfo } from '@/types/image'
 
 const { t: $t } = useI18n()
 const router = useRouter()
@@ -241,6 +390,32 @@ const formData = reactive<CreateAlbumRequest>({
   description: '',
   categoryId: 0,
   tagNames: []
+})
+
+// Edit modal state
+const showEditModal = ref(false)
+const updating = ref(false)
+const loadingEditData = ref(false)
+const loadingImages = ref(false)
+const editFormRef = ref<FormInst | null>(null)
+const editTagInput = ref('')
+const editingAlbumId = ref<number>(0)
+const selectedImages = ref<number[]>([])
+const coverImageId = ref<number | null>(null)
+const availableImages = ref<ImageInfo[]>([])
+const imageCurrentPage = ref(1)
+const imagePageSize = ref(20)
+const imageTotalPages = ref(1)
+const imageTotalCount = ref(0)
+
+const editFormData = reactive<UpdateAlbumRequest>({
+  id: 0,
+  albumName: '',
+  description: '',
+  categoryId: 0,
+  tagNames: [],
+  imageIds: [],
+  coverImageId: undefined
 })
 
 const rules = computed((): FormRules => ({
@@ -264,8 +439,29 @@ const rules = computed((): FormRules => ({
   ]
 }))
 
+const editRules = computed((): FormRules => ({
+  albumName: [
+    {
+      required: true,
+      message: $t('albums.albumNameRequired'),
+      trigger: 'blur'
+    }
+  ],
+  categoryId: [
+    {
+      required: true,
+      type: 'number',
+      message: $t('albums.categoryRequired'),
+      trigger: ['blur', 'change'],
+      validator: (rule: any, value: any) => {
+        return value > 0
+      }
+    }
+  ]
+}))
+
 const responsiveCols = computed(() => {
-  return 'xs:1 s:2 m:3 l:4 xl:4 2xl:5'
+  return 5
 })
 
 onMounted(() => {
@@ -311,6 +507,22 @@ const handleRemoveTag = (tag: string) => {
   }
 }
 
+const handleAddEditTag = () => {
+  if (editTagInput.value && !editFormData.tagNames?.includes(editTagInput.value)) {
+    if (!editFormData.tagNames) {
+      editFormData.tagNames = []
+    }
+    editFormData.tagNames.push(editTagInput.value)
+    editTagInput.value = ''
+  }
+}
+
+const handleRemoveEditTag = (tag: string) => {
+  if (editFormData.tagNames) {
+    editFormData.tagNames = editFormData.tagNames.filter(t => t !== tag)
+  }
+}
+
 // Watch for route changes to update categoryId
 watch(() => route.query.categoryId, (newCategoryId) => {
   categoryId.value = newCategoryId ? Number(newCategoryId) : undefined
@@ -353,6 +565,173 @@ const handleCreate = async () => {
   } finally {
     creating.value = false
   }
+}
+
+const handleEditClick = async (albumId: number) => {
+  console.log('[Albums] Edit button clicked for album:', albumId)
+  editingAlbumId.value = albumId
+  showEditModal.value = true
+
+  // Reset state
+  selectedImages.value = []
+  coverImageId.value = null
+  imageCurrentPage.value = 1
+
+  // Load album details and images
+  await Promise.all([
+    loadAlbumDetails(albumId),
+    loadAvailableImages()
+  ])
+}
+
+const loadAlbumDetails = async (albumId: number) => {
+  try {
+    loadingEditData.value = true
+    console.log('[Albums] Loading album details for album:', albumId)
+
+    const response = await albumApi.getAlbumDetail(albumId)
+    console.log('[Albums] Album details response:', response)
+
+    const albumDetail = response.data
+    console.log('[Albums] Album details data:', albumDetail)
+
+    // Populate edit form
+    editFormData.id = albumDetail.id
+    editFormData.albumName = albumDetail.albumName
+    editFormData.description = albumDetail.description || ''
+    editFormData.categoryId = albumDetail.categoryId || 0
+    editFormData.tagNames = albumDetail.tags?.map(tag => tag.tagName) || []
+
+    // Set selected images and cover image
+    if (albumDetail.images && albumDetail.images.length > 0) {
+      selectedImages.value = albumDetail.images.map(img => img.id)
+      console.log('[Albums] Selected images:', selectedImages.value)
+    }
+
+    // Set cover image if exists
+    if (albumDetail.coverImageId) {
+      coverImageId.value = albumDetail.coverImageId
+      console.log('[Albums] Cover image ID:', coverImageId.value)
+    }
+  } catch (error: any) {
+    console.error('[Albums] Error loading album details:', error)
+    message.error(error.message || $t('albums.loadDetailsFailed'))
+  } finally {
+    loadingEditData.value = false
+  }
+}
+
+const loadAvailableImages = async () => {
+  try {
+    loadingImages.value = true
+    console.log('[Albums] Loading available images, page:', imageCurrentPage.value)
+
+    const response = await imageApi.getImagePage({
+      current: imageCurrentPage.value,
+      size: imagePageSize.value
+    })
+
+    availableImages.value = response.data.records || []
+    imageTotalCount.value = response.data.total || 0
+    imageTotalPages.value = Math.ceil((response.data.total || 0) / imagePageSize.value)
+
+    console.log('[Albums] Loaded', availableImages.value.length, 'images, total:', imageTotalCount.value)
+  } catch (error: any) {
+    console.error('[Albums] Error loading images:', error)
+    message.error(error.message || $t('albums.loadImagesFailed'))
+  } finally {
+    loadingImages.value = false
+  }
+}
+
+const handleImagePageChange = (page: number) => {
+  imageCurrentPage.value = page
+  loadAvailableImages()
+}
+
+const handleImageSelect = (imageId: number, checked: boolean) => {
+  if (checked) {
+    if (!selectedImages.value.includes(imageId)) {
+      selectedImages.value.push(imageId)
+      console.log('[Albums] Image selected:', imageId, 'Total selected:', selectedImages.value.length)
+
+      // If this is the first image, set it as cover
+      if (selectedImages.value.length === 1) {
+        coverImageId.value = imageId
+        console.log('[Albums] Auto-set first image as cover:', imageId)
+      }
+    }
+  } else {
+    selectedImages.value = selectedImages.value.filter(id => id !== imageId)
+    console.log('[Albums] Image deselected:', imageId, 'Total selected:', selectedImages.value.length)
+
+    // If the cover image was deselected, set a new cover or clear it
+    if (coverImageId.value === imageId) {
+      coverImageId.value = selectedImages.value.length > 0 ? selectedImages.value[0] : null
+      console.log('[Albums] Cover image changed to:', coverImageId.value)
+    }
+  }
+}
+
+const handleSetCover = (imageId: number) => {
+  if (selectedImages.value.includes(imageId)) {
+    coverImageId.value = imageId
+    console.log('[Albums] Cover image set to:', imageId)
+  }
+}
+
+const handleUpdate = async () => {
+  try {
+    await editFormRef.value?.validate()
+    updating.value = true
+
+    console.log('[Albums] Updating album:', editingAlbumId.value)
+    console.log('[Albums] Selected images:', selectedImages.value)
+    console.log('[Albums] Cover image:', coverImageId.value)
+
+    // Prepare update data
+    const updateData: UpdateAlbumRequest = {
+      id: editFormData.id,
+      albumName: editFormData.albumName,
+      description: editFormData.description,
+      categoryId: editFormData.categoryId,
+      tagNames: editFormData.tagNames,
+      imageIds: selectedImages.value,
+      coverImageId: coverImageId.value || undefined
+    }
+
+    await albumApi.updateAlbum(updateData)
+    console.log('[Albums] Album updated successfully')
+
+    message.success($t('albums.updateSuccess'))
+    showEditModal.value = false
+
+    // Refresh album list
+    await albumStore.fetchAlbums({ categoryId: categoryId.value, keyword: searchKeyword.value })
+  } catch (error: any) {
+    console.error('[Albums] Error updating album:', error)
+    if (error?.message) {
+      message.error(error.message)
+    } else {
+      message.error($t('albums.updateFailed'))
+    }
+  } finally {
+    updating.value = false
+  }
+}
+
+const handleCancelEdit = () => {
+  showEditModal.value = false
+  // Reset form data
+  editFormData.id = 0
+  editFormData.albumName = ''
+  editFormData.description = ''
+  editFormData.categoryId = 0
+  editFormData.tagNames = []
+  editTagInput.value = ''
+  selectedImages.value = []
+  coverImageId.value = null
+  availableImages.value = []
 }
 
 const handleToggleStar = async (album: Album) => {
@@ -433,5 +812,64 @@ const handleAlbumClick = (albumId: number) => {
   margin-right: 16px;
   font-size: 14px;
   color: var(--n-text-color);
+}
+
+/* Edit modal image selection styles */
+.image-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.image-selection-item {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 8px;
+  transition: all 0.3s ease;
+  background: var(--n-color-embedded);
+}
+
+.image-selection-item:hover {
+  border-color: var(--n-border-color);
+  background: var(--n-color-embedded-popover);
+}
+
+.image-selection-item.selected {
+  border-color: var(--n-color-target);
+  background: var(--n-color-target-alpha);
+}
+
+.image-selection-item.cover {
+  border-color: var(--n-color-primary);
+  background: var(--n-color-primary-alpha);
+}
+
+.image-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+.image-wrapper {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.selection-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 </style>

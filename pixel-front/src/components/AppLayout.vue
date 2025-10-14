@@ -16,6 +16,7 @@
         :collapsed-icon-size="22"
         :options="menuOptions"
         :value="activeKey"
+        :node-props="nodeProps"
         @update:value="handleMenuSelect"
       />
     </n-layout-sider>
@@ -156,13 +157,18 @@ const renderIcon = (icon: any) => {
 
 // Convert category tree to menu options
 const convertCategoriesToMenuOptions = (categories: Category[], type: 'images' | 'albums'): any[] => {
-  return categories.map(category => ({
-    label: category.categoryName,
-    key: `/${type}?categoryId=${category.id}`,
-    children: category.children && category.children.length > 0
-      ? convertCategoriesToMenuOptions(category.children, type)
-      : undefined
-  }))
+  return categories.map(category => {
+    const hasChildren = category.children && category.children.length > 0
+    return {
+      label: category.categoryName,
+      key: `/${type}?categoryId=${category.id}`,
+      children: hasChildren
+        ? convertCategoriesToMenuOptions(category.children, type)
+        : undefined,
+      // Allow parent items to be clickable
+      disabled: false
+    }
+  })
 }
 
 const menuOptions = computed(() => {
@@ -207,16 +213,16 @@ const menuOptions = computed(() => {
     },
     {
       label: $t('nav.favorites'),
-      key: '/favorites',
+      key: '/starred',
       icon: renderIcon(StarOutline),
       children: [
         {
           label: $t('nav.starredImages'),
-          key: '/favorites/images'
+          key: '/starred/images'
         },
         {
           label: $t('nav.starredAlbums'),
-          key: '/favorites/albums'
+          key: '/starred/albums'
         }
       ]
     }
@@ -249,6 +255,17 @@ const languageOptions = computed(() => LOCALE_OPTIONS.map(option => ({
   label: option.label,
   key: option.value
 })))
+
+const nodeProps = ({ option }: { option: any }) => {
+  return {
+    onClick() {
+      // Navigate when clicking on any menu item (including parent items)
+      if (option.key) {
+        handleMenuSelect(option.key)
+      }
+    }
+  }
+}
 
 const handleMenuSelect = (key: string) => {
   // If key contains query params, parse and navigate

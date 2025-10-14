@@ -2,16 +2,20 @@ package com.pixelstack.ims.controller;
 
 import com.pixelstack.ims.dto.AlbumDTO;
 import com.pixelstack.ims.dto.CreateAlbumRequest;
+import com.pixelstack.ims.dto.ImageInfoDTO;
 import com.pixelstack.ims.dto.PageResult;
+import com.pixelstack.ims.dto.UpdateAlbumRequest;
 import com.pixelstack.ims.service.AlbumService;
 import com.pixelstack.ims.util.Result;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/album")
 @RequiredArgsConstructor
@@ -22,7 +26,18 @@ public class AlbumController {
     @PostMapping
     public Result<AlbumDTO> createAlbum(@Valid @RequestBody CreateAlbumRequest request, HttpServletRequest httpRequest) {
         Long userId = (Long) httpRequest.getAttribute("userId");
+        log.info("Create album attempt: userId={}, albumName={}", userId, request.getAlbumName());
         AlbumDTO album = albumService.createAlbum(request, userId);
+        log.info("Album created successfully: userId={}, albumId={}", userId, album.getId());
+        return Result.success(album);
+    }
+
+    @PutMapping
+    public Result<AlbumDTO> updateAlbum(@Valid @RequestBody UpdateAlbumRequest request, HttpServletRequest httpRequest) {
+        Long userId = (Long) httpRequest.getAttribute("userId");
+        log.info("Update album attempt: userId={}, albumId={}, albumName={}", userId, request.getId(), request.getAlbumName());
+        AlbumDTO album = albumService.updateAlbum(request, userId);
+        log.info("Album updated successfully: userId={}, albumId={}", userId, album.getId());
         return Result.success(album);
     }
 
@@ -51,6 +66,16 @@ public class AlbumController {
         Long userId = (Long) request.getAttribute("userId");
         AlbumDTO album = albumService.getAlbumDetail(albumId, userId);
         return Result.success(album);
+    }
+
+    @GetMapping("/{albumId}/images/page")
+    public Result<PageResult<ImageInfoDTO>> getAlbumImages(@PathVariable Long albumId,
+                                                          @RequestParam(defaultValue = "1") Integer current,
+                                                          @RequestParam(defaultValue = "50") Integer size,
+                                                          HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        PageResult<ImageInfoDTO> result = albumService.getAlbumImages(albumId, current, size, userId);
+        return Result.success(result);
     }
 
     @PostMapping("/{albumId}/images")

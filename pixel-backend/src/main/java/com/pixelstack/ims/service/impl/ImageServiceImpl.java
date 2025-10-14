@@ -10,6 +10,7 @@ import com.pixelstack.ims.entity.ImageStarRelation;
 import com.pixelstack.ims.exception.BusinessException;
 import com.pixelstack.ims.mapper.ImageInfoMapper;
 import com.pixelstack.ims.mapper.ImageStarRelationMapper;
+import com.pixelstack.ims.service.CategoryService;
 import com.pixelstack.ims.service.ImageService;
 import com.pixelstack.ims.util.FileUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageInfoMapper imageInfoMapper;
     private final ImageStarRelationMapper imageStarRelationMapper;
+    private final CategoryService categoryService;
 
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -86,7 +89,11 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public PageResult<ImageInfoDTO> getImagePage(Integer current, Integer size, Long categoryId, String keyword, Long userId) {
         Page<ImageInfoDTO> page = new Page<>(current, size);
-        IPage<ImageInfoDTO> result = imageInfoMapper.selectImagePage(page, userId, categoryId, keyword);
+        List<Long> categoryIds = null;
+        if (categoryId != null) {
+            categoryIds = categoryService.getAllDescendantCategoryIds(categoryId);
+        }
+        IPage<ImageInfoDTO> result = imageInfoMapper.selectImagePage(page, userId, categoryIds, keyword);
         return new PageResult<>(result.getRecords(), result.getTotal(), result.getSize(), result.getCurrent());
     }
 

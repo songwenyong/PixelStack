@@ -25,8 +25,11 @@
         LEFT JOIN t_album_star_relation s ON a.id = s.album_id AND s.user_id = #{userId}
         LEFT JOIN t_album_star_relation s2 ON a.id = s2.album_id
         WHERE 1=1
-        <if test="categoryId != null">
-            AND a.category_id = #{categoryId}
+        <if test="categoryIds != null and categoryIds.size() > 0">
+            AND a.category_id IN
+            <foreach collection="categoryIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
         </if>
         <if test="keyword != null and keyword != ''">
             AND a.album_name LIKE CONCAT('%', #{keyword}, '%')
@@ -49,7 +52,8 @@
             a.created_at AS createdAt,
             COUNT(DISTINCT air.image_id) AS imageCount,
             1 AS isStared,
-            COUNT(DISTINCT s2.id) AS starCount
+            COUNT(DISTINCT s2.id) AS starCount,
+            MAX(s.created_at) AS starredAt
         FROM t_album a
         INNER JOIN t_album_star_relation s ON a.id = s.album_id
         LEFT JOIN t_category c ON a.category_id = c.id
@@ -59,7 +63,7 @@
         LEFT JOIN t_album_star_relation s2 ON a.id = s2.album_id
         WHERE s.user_id = #{userId}
         GROUP BY a.id, a.album_name, a.description, a.category_id, c.category_name, a.cover_image_id, i.url, a.creator, u.username, a.created_at
-        ORDER BY s.created_at DESC
+        ORDER BY starredAt DESC
     </select>
 
     <select id="selectAlbumDetail" resultType="com.pixelstack.ims.dto.AlbumDTO">
@@ -89,6 +93,26 @@
         LEFT JOIN t_tag t ON atr.tag_id = t.id
         WHERE a.id = #{albumId}
         GROUP BY a.id, a.album_name, a.description, a.category_id, c.category_name, a.cover_image_id, ci.url, a.creator, u.username, a.created_at, s.id
+    </select>
+
+    <select id="selectAlbumImages" resultType="com.pixelstack.ims.dto.ImageInfoDTO">
+        SELECT
+            i.id,
+            i.title,
+            i.file_name AS fileName,
+            i.format,
+            i.url,
+            i.thumbnail_url AS thumbnailUrl,
+            i.creator,
+            u.username AS creatorName,
+            i.created_at AS createdAt,
+            CASE WHEN s.id IS NOT NULL THEN 1 ELSE 0 END AS isStared
+        FROM t_image_info i
+        INNER JOIN t_album_image_relation air ON i.id = air.image_id
+        LEFT JOIN t_user_info u ON i.creator = u.id
+        LEFT JOIN t_image_star_relation s ON i.id = s.image_id AND s.user_id = #{userId}
+        WHERE air.album_id = #{albumId} AND i.is_delete = 0
+        ORDER BY air.created_at DESC
     </select>
 
 </mapper>

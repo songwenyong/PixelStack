@@ -13,4 +13,11 @@ public interface CategoryService {
     CategoryDTO updateCategory(Long categoryId, String categoryName, Long parentId, Long userId);
 
     void deleteCategory(Long categoryId, Long userId);
+
+    /**
+     * Get all descendant category IDs (including the category itself)
+     * @param categoryId The category ID
+     * @return List of all descendant category IDs including the category itself
+     */
+    List<Long> getAllDescendantCategoryIds(Long categoryId);
 }

@@ -17,9 +17,12 @@
         FROM t_image_info i
         LEFT JOIN t_user_info u ON i.creator = u.id
         LEFT JOIN t_image_star_relation s ON i.id = s.image_id AND s.user_id = #{userId}
-        <if test="categoryId != null">
+        <if test="categoryIds != null and categoryIds.size() > 0">
             INNER JOIN t_album_image_relation air ON i.id = air.image_id
-            INNER JOIN t_album a ON air.album_id = a.id AND a.category_id = #{categoryId}
+            INNER JOIN t_album a ON air.album_id = a.id AND a.category_id IN
+            <foreach collection="categoryIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
         </if>
         WHERE i.is_delete = 0
         <if test="keyword != null and keyword != ''">

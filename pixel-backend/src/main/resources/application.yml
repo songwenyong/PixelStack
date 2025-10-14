@@ -54,11 +54,11 @@ mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
 
 logging:
+  file:
+    path: logs
   level:
     com.pixelstack.ims: debug
     org.springframework.web: info
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
 jwt:
   secret: pixelstack-ims-jwt-secret-key-2024

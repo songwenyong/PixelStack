@@ -124,6 +124,7 @@ export default {
     myAlbums: '我的相册',
     searchAlbums: '搜索相册...',
     createAlbum: '创建相册',
+    editAlbum: '编辑相册',
     noAlbumsFound: '未找到相册',
     createFirstAlbum: '创建您的第一个相册',
     deleteConfirmText: '确定要删除这个相册吗？',
@@ -141,12 +142,22 @@ export default {
     categoryRequired: '请选择分类',
     cancel: '取消',
     create: '创建',
+    save: '保存',
     createSuccess: '相册创建成功',
+    updateSuccess: '相册更新成功',
+    updateFailed: '更新相册失败',
     addedToFavorites: '已添加到收藏',
     removedFromFavorites: '已从收藏中移除',
     operationFailed: '操作失败',
     deleteSuccess: '相册删除成功',
-    deleteFailed: '删除相册失败'
+    deleteFailed: '删除相册失败',
+    selectImages: '选择图片',
+    noImagesAvailable: '暂无可用图片',
+    selectedImagesCount: '已选择 {count} 张图片',
+    setAsCover: '设为封面',
+    coverImage: '封面图片',
+    loadDetailsFailed: '加载相册详情失败',
+    loadImagesFailed: '加载图片失败'
   },
 
   // Album Management

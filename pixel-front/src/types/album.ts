@@ -34,6 +34,16 @@ export interface CreateAlbumRequest {
   tagNames?: string[]
 }
 
+export interface UpdateAlbumRequest {
+  id: number
+  albumName: string
+  description?: string
+  categoryId: number
+  coverImageId?: number
+  tagNames?: string[]
+  imageIds?: number[]
+}
+
 export interface AlbumPageParams {
   current?: number
   size?: number

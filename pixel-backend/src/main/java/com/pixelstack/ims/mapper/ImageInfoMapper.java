@@ -8,10 +8,12 @@ import com.pixelstack.ims.entity.ImageInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface ImageInfoMapper extends BaseMapper<ImageInfo> {
 
-    IPage<ImageInfoDTO> selectImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId, @Param("categoryId") Long categoryId, @Param("keyword") String keyword);
+    IPage<ImageInfoDTO> selectImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId, @Param("categoryIds") List<Long> categoryIds, @Param("keyword") String keyword);
 
     IPage<ImageInfoDTO> selectStaredImagePage(Page<ImageInfoDTO> page, @Param("userId") Long userId);
 }

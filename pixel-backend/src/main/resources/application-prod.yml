@@ -10,6 +10,8 @@ spring:
     password: ${REDIS_PASSWORD:}
 
 logging:
+  file:
+    path: ${LOG_PATH:/var/log/ims}
   level:
     com.pixelstack.ims: info
     root: warn

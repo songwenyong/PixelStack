@@ -124,6 +124,7 @@ export default {
     myAlbums: 'My Albums',
     searchAlbums: 'Search albums...',
     createAlbum: 'Create Album',
+    editAlbum: 'Edit Album',
     noAlbumsFound: 'No albums found',
     createFirstAlbum: 'Create your first album',
     deleteConfirmText: 'Are you sure you want to delete this album?',
@@ -141,12 +142,22 @@ export default {
     categoryRequired: 'Please select a category',
     cancel: 'Cancel',
     create: 'Create',
+    save: 'Save',
     createSuccess: 'Album created successfully',
+    updateSuccess: 'Album updated successfully',
+    updateFailed: 'Failed to update album',
     addedToFavorites: 'Added to favorites',
     removedFromFavorites: 'Removed from favorites',
     operationFailed: 'Operation failed',
     deleteSuccess: 'Album deleted successfully',
-    deleteFailed: 'Failed to delete album'
+    deleteFailed: 'Failed to delete album',
+    selectImages: 'Select Images',
+    noImagesAvailable: 'No images available',
+    selectedImagesCount: '{count} images selected',
+    setAsCover: 'Set as Cover',
+    coverImage: 'Cover Image',
+    loadDetailsFailed: 'Failed to load album details',
+    loadImagesFailed: 'Failed to load images'
   },
 
   // Album Management

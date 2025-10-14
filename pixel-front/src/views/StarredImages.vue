@@ -1,24 +1,13 @@
 <template>
-  <div class="images-page">
+  <div class="starred-images-page">
     <n-space vertical :size="24">
       <n-space justify="space-between" align="center">
-        <h1>{{ $t('images.myImages') }}</h1>
-        <n-input
-          v-model:value="searchKeyword"
-          :placeholder="$t('images.searchImages')"
-          clearable
-          style="width: 300px"
-          @update:value="handleSearch"
-        >
-          <template #prefix>
-            <n-icon><SearchOutline /></n-icon>
-          </template>
-        </n-input>
+        <h1>{{ $t('nav.starredImages') }}</h1>
       </n-space>
 
-      <n-spin :show="imageStore.loading">
-        <n-grid x-gap="16" y-gap="16" :cols="responsiveCols">
-          <n-grid-item v-for="image in imageStore.images" :key="image.id">
+      <n-spin :show="loading">
+        <n-grid x-gap="16" y-gap="16" :cols="5">
+          <n-grid-item v-for="image in images" :key="image.id">
             <n-card
               class="image-card"
               :segmented="{ content: 'soft' }"
@@ -52,19 +41,6 @@
                         </n-icon>
                       </template>
                     </n-button>
-
-                    <n-popconfirm
-                      @positive-click="handleDelete(image.id)"
-                    >
-                      <template #trigger>
-                        <n-button text type="error">
-                          <template #icon>
-                            <n-icon><TrashOutline /></n-icon>
-                          </template>
-                        </n-button>
-                      </template>
-                      {{ $t('images.deleteConfirmText') }}
-                    </n-popconfirm>
                   </n-space>
                 </n-space>
               </template>
@@ -73,23 +49,23 @@
         </n-grid>
 
         <n-empty
-          v-if="!imageStore.loading && imageStore.images.length === 0"
+          v-if="!loading && images.length === 0"
           :description="$t('images.noImagesFound')"
           style="margin-top: 60px"
         >
           <template #extra>
-            <n-button @click="$router.push('/')">
-              {{ $t('images.uploadFirstImage') }}
+            <n-button type="primary" @click="$router.push('/images')">
+              {{ $t('nav.allImages') }}
             </n-button>
           </template>
         </n-empty>
 
-        <div v-if="imageStore.total > 0" class="pagination-wrapper">
+        <div v-if="total > 0" class="pagination-wrapper">
           <n-pagination
-            v-model:page="imageStore.currentPage"
-            v-model:page-size="imageStore.pageSize"
-            :page-count="Math.ceil(imageStore.total / imageStore.pageSize)"
-            :item-count="imageStore.total"
+            v-model:page="currentPage"
+            v-model:page-size="pageSize"
+            :page-count="Math.ceil(total / pageSize)"
+            :item-count="total"
             show-size-picker
             show-quick-jumper
             :page-sizes="[20, 50, 100, 200]"
@@ -125,10 +101,10 @@
           <n-descriptions-item :label="$t('images.uploadTime')">
             {{ currentImage.createdAt }}
           </n-descriptions-item>
-          <n-descriptions-item :label="$t('images.format')">
+          <n-descriptions-item :label="$t('image.format')">
             {{ currentImage.format }}
           </n-descriptions-item>
-          <n-descriptions-item :label="$t('images.creator')">
+          <n-descriptions-item :label="$t('image.creator')">
             {{ currentImage.creatorName || currentImage.creator }}
           </n-descriptions-item>
         </n-descriptions>
@@ -138,79 +114,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
 import { useMessage, NIcon } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { SearchOutline, StarOutline, Star, TrashOutline } from '@vicons/ionicons5'
-import { useImageStore } from '@/stores/image'
+import { StarOutline, Star } from '@vicons/ionicons5'
+import { imageApi } from '@/api/image'
 import type { ImageInfo } from '@/types/image'
 
 const { t: $t } = useI18n()
-const route = useRoute()
 const message = useMessage()
-const imageStore = useImageStore()
 
-const searchKeyword = ref('')
+const images = ref<ImageInfo[]>([])
+const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(50)
+const total = ref(0)
 const showDetailModal = ref(false)
 const currentImage = ref<ImageInfo | null>(null)
-const categoryId = ref<number | undefined>(undefined)
 
-const responsiveCols = computed(() => {
-  return 5
-})
+const fetchStarredImages = async () => {
+  try {
+    loading.value = true
+    const response = await imageApi.getStaredImagePage({
+      current: currentPage.value,
+      size: pageSize.value
+    })
+    images.value = response.data.records || []
+    total.value = response.data.total || 0
+  } catch (error: any) {
+    message.error(error.message || $t('images.operationFailed'))
+  } finally {
+    loading.value = false
+  }
+}
 
 onMounted(() => {
-  // Get categoryId from route query
-  const route = useRoute()
-  if (route.query.categoryId) {
-    categoryId.value = Number(route.query.categoryId)
-  }
-  imageStore.fetchImages({ categoryId: categoryId.value })
+  fetchStarredImages()
 })
-
-// Watch for route changes to update categoryId
-watch(() => route.query.categoryId, (newCategoryId) => {
-  categoryId.value = newCategoryId ? Number(newCategoryId) : undefined
-  imageStore.setPage(1)
-  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
-})
-
-const handleSearch = () => {
-  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
-}
 
 const handlePageChange = (page: number) => {
-  imageStore.setPage(page)
-  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
+  currentPage.value = page
+  fetchStarredImages()
 }
 
-const handlePageSizeChange = (pageSize: number) => {
-  imageStore.setPageSize(pageSize)
-  imageStore.setPage(1)
-  imageStore.fetchImages({ categoryId: categoryId.value, keyword: searchKeyword.value })
+const handlePageSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchStarredImages()
 }
 
 const handleToggleStar = async (image: ImageInfo) => {
   try {
     if (image.isStared) {
-      await imageStore.unstarImage(image.id)
+      await imageApi.unstarImage(image.id)
       message.success($t('images.removedFromFavorites'))
+      // Remove from list
+      images.value = images.value.filter(img => img.id !== image.id)
+      total.value -= 1
     } else {
-      await imageStore.starImage(image.id)
+      await imageApi.starImage(image.id)
       message.success($t('images.addedToFavorites'))
+      fetchStarredImages()
     }
   } catch (error: any) {
     message.error(error.message || $t('images.operationFailed'))
-  }
-}
-
-const handleDelete = async (imageId: number) => {
-  try {
-    await imageStore.deleteImage(imageId)
-    message.success($t('images.imageDeleteSuccess'))
-  } catch (error: any) {
-    message.error(error.message || $t('images.imageDeleteFailed'))
   }
 }
 
@@ -221,7 +188,7 @@ const handleImageClick = (image: ImageInfo) => {
 </script>
 
 <style scoped>
-.images-page {
+.starred-images-page {
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 16px;

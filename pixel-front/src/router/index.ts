@@ -61,32 +61,30 @@ const routes: RouteRecordRaw[] = [
           title: 'Categories - PixelStack'
         }
       },
-      // Commented out routes for views that don't exist yet
-      // Uncomment these when the view files are created
-      // {
-      //   path: 'albums/:id',
-      //   name: 'AlbumDetail',
-      //   component: () => import('@/views/AlbumDetail.vue'),
-      //   meta: {
-      //     title: 'Album Detail - PixelStack'
-      //   }
-      // },
-      // {
-      //   path: 'favorites/images',
-      //   name: 'FavoriteImages',
-      //   component: () => import('@/views/FavoriteImages.vue'),
-      //   meta: {
-      //     title: 'Favorite Images - PixelStack'
-      //   }
-      // },
-      // {
-      //   path: 'favorites/albums',
-      //   name: 'FavoriteAlbums',
-      //   component: () => import('@/views/FavoriteAlbums.vue'),
-      //   meta: {
-      //     title: 'Favorite Albums - PixelStack'
-      //   }
-      // },
+      {
+        path: 'starred/images',
+        name: 'StarredImages',
+        component: () => import('@/views/StarredImages.vue'),
+        meta: {
+          title: 'Starred Images - PixelStack'
+        }
+      },
+      {
+        path: 'starred/albums',
+        name: 'StarredAlbums',
+        component: () => import('@/views/StarredAlbums.vue'),
+        meta: {
+          title: 'Starred Albums - PixelStack'
+        }
+      },
+      {
+        path: 'albums/:id',
+        name: 'AlbumDetail',
+        component: () => import('@/views/AlbumDetail.vue'),
+        meta: {
+          title: 'Album Detail - PixelStack'
+        }
+      }
       // {
       //   path: 'profile',
       //   name: 'Profile',

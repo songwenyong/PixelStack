@@ -120,6 +120,29 @@ public class CategoryServiceImpl implements CategoryService {
         categoryMapper.deleteById(categoryId);
     }
 
+    @Override
+    public List<Long> getAllDescendantCategoryIds(Long categoryId) {
+        List<Long> result = new java.util.ArrayList<>();
+        result.add(categoryId); // Include the category itself
+        collectDescendantIds(categoryId, result);
+        return result;
+    }
+
+    /**
+     * Recursively collect all descendant category IDs
+     */
+    private void collectDescendantIds(Long parentId, List<Long> result) {
+        List<Category> children = categoryMapper.selectList(
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Category>()
+                .eq("parent_id", parentId)
+        );
+
+        for (Category child : children) {
+            result.add(child.getId());
+            collectDescendantIds(child.getId(), result); // Recursively collect children
+        }
+    }
+
     /**
      * Check if setting parentId would create a circular reference
      */
